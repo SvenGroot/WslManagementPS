@@ -38,7 +38,6 @@ if ($IsWindows) {
     }
 
 } else {
-
     # If running inside WSL, rely on wsl.exe being in the path.
     $wslPath = "wsl.exe"
 }
@@ -91,6 +90,7 @@ function Invoke-Wsl
     }
 }
 
+# Helper to parse the output of wsl.exe --list
 function Get-WslDistributionHelper()
 {
     # Use --verbose if it's available.
@@ -146,6 +146,7 @@ function Get-WslDistributionHelper()
     }
 }
 
+# Helper to get additional distribution properties from the registry.
 function Get-WslDistributionProperties([WslDistribution]$Distribution)
 {
     $key = Get-ChildItem "hkcu:\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss" | Get-ItemProperty | Where-Object { $_.DistributionName -eq $Distribution.Name }
@@ -523,6 +524,11 @@ Unregisters all distributions whose names start with Ubuntu
 Get-WslDistribution -Version 1 | Remove-WslDistribution
 
 Unregisters all WSL1 distributions.
+
+.EXAMPLE
+Get-WslDistribution | Where-Object { $_.Name -ine "Ubuntu" } | Remove-WslDistribution
+
+Unregisters all distributions except the one named "Ubuntu".
 #>
 function Remove-WslDistribution
 {
