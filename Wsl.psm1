@@ -30,12 +30,21 @@ class WslDistribution
     [string]$BasePath
 }
 
-$wslPath = "$env:windir\system32\wsl.exe"
-if (-not [System.Environment]::Is64BitProcess) {
-    # Allow launching WSL from 32 bit powershell
-    $wslPath = "$env:windir\sysnative\wsl.exe"
+if ($IsWindows) {
+    $wslPath = "$env:windir\system32\wsl.exe"
+    if (-not [System.Environment]::Is64BitProcess) {
+        # Allow launching WSL from 32 bit powershell
+        $wslPath = "$env:windir\sysnative\wsl.exe"
+    }
+
+} else {
+
+    # If running inside WSL, rely on wsl.exe being in the path.
+    $wslPath = "wsl.exe"
 }
 
+# Helper that will launch wsl.exe, correctly parsing its output encoding, and throwing an error
+# if it fails.
 function Invoke-Wsl
 {
     $hasError = $false
@@ -45,7 +54,7 @@ function Invoke-Wsl
             [System.Console]::OutputEncoding = [System.Text.Encoding]::Unicode
             $output = &$wslPath $args
             if ($LASTEXITCODE -ne 0) {
-                throw "Wsl.exe failed, exit code: $($LASTEXITCODE). Message: $output"
+                throw "Wsl.exe failed: $output"
                 $hasError = $true
             }
 
@@ -71,7 +80,7 @@ function Invoke-Wsl
 
         $process.WaitForExit()
         if ($process.ExitCode -ne 0) {
-            throw "Wsl.exe failed, exit code: $($process.ExitCode). Message: $output"
+            throw "Wsl.exe failed: $output"
             $hasError = $true
         }
     }
@@ -85,7 +94,9 @@ function Invoke-Wsl
 function Get-WslDistributionHelper()
 {
     # Use --verbose if it's available.
-    if ([System.Environment]::OSVersion.Version.Build -ge 18917) {
+    # N.B. If running inside WSL, it's assumed verbose is available since it's harder to determine
+    #      the Windows version number.
+    if ([System.Environment]::OSVersion.Version.Build -ge 18917 -or -not $IsWindows) {
         Invoke-Wsl --list --verbose | Select-Object -Skip 1 | ForEach-Object { 
             $fields = $_.Split(@(" "), [System.StringSplitOptions]::RemoveEmptyEntries) 
             $defaultDistro = $false
@@ -272,8 +283,11 @@ function Get-WslDistribution
             }
         }
 
-        $distributions | ForEach-Object {
-            Get-WslDistributionProperties $_
+        # The additional registry properties aren't available if running inside WSL.
+        if ($IsWindows) {
+            $distributions | ForEach-Object {
+                Get-WslDistributionProperties $_
+            }
         }
 
         return $distributions
