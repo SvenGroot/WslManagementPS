@@ -809,6 +809,27 @@ function Import-WslDistribution
     }
 }
 
+<#
+.SYNOPSIS
+Stops all WSL distributions.
+
+.DESCRIPTION
+The Stop-Wsl cmdlet terminates all WSL distribution, and for WSL2 also shuts down the lightweight
+utility VM.
+
+This cmdlet wraps the functionality of "wsl.exe --shutdown".
+
+.INPUTS
+None. This cmdlet does not take any input.
+
+.OUTPUTS
+None. This cmdlet does not generate any output.
+
+.EXAMPLE
+Stop-Wsl
+
+Shuts down WSL.
+#>
 function Stop-Wsl
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
