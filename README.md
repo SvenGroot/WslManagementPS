@@ -150,13 +150,13 @@ Get-WslDistribution -Version 2 | Export-WslDistribution -Destination D:\backup
 
 ### Import-WslDistribution
 
-The Import-WslDistribution cmdlet imports each of the specified gzipped tarball files to a WSL
+The **Import-WslDistribution** cmdlet imports each of the specified gzipped tarball files to a WSL
 distribution. to a gzipped.
 
 By default, this cmdlet derives the distribution name from the input file name, and appends that
 name to the destination path. This allows you to import multiple distributions.
 
-This cmdlet wraps the functionality of "wsl.exe --import".
+This cmdlet wraps the functionality of `wsl.exe --import`.
 
 For example, to import all .tar.gz files from a directory, storing them in subdirectories under
 D:\\wsl:
