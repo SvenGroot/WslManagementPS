@@ -23,7 +23,7 @@ for each cmdlet.
 
 ### Get-WslDistribution
 
-The *Get-WslDistribution* cmdlet gets objects that represent the WSL distributions on the computer.
+The **Get-WslDistribution** cmdlet gets objects that represent the WSL distributions on the computer.
 
 This cmdlet wraps the functionality of `wsl.exe --list --verbose`.
 
@@ -79,7 +79,7 @@ properties:
 
 ### Set-WslDistribution
 
-The *Set-WslDistribution* cmdlet changes the properties of a WSL distribution. You can set a
+The **Set-WslDistribution** cmdlet changes the properties of a WSL distribution. You can set a
 distribution as default, or convert it from WSL1 to WSL2 or vice versa.
 
 This cmdlet wraps the functionality of `wsl.exe --set-default` and `wsl.exe --set-version`.
@@ -98,7 +98,7 @@ Get-WslDistribution -Version 1 | Set-WslDistribution -Version 2
 
 ### Stop-WslDistribution
 
-The *Stop-WslDistribution* cmdlet terminates each of the specified WSL distributions.
+The **Stop-WslDistribution** cmdlet terminates each of the specified WSL distributions.
 
 This cmdlet wraps the functionality of `wsl.exe --terminate`.
 
@@ -116,7 +116,7 @@ Get-WslDistribution -State Running | Stop-WslDistribution
 
 ### Remove-WslDistribution
 
-The *Remove-WslDistribution* cmdlet unregisters each of the specified WSL distributions.
+The **Remove-WslDistribution** cmdlet unregisters each of the specified WSL distributions.
 
 This cmdlet wraps the functionality of `wsl.exe --unregister`.
 
@@ -134,7 +134,7 @@ Get-WslDistribution -Version 1 | Remove-WslDistribution
 
 ### Export-WslDistribution
 
-The *Export-WslDistribution* cmdlet exports each of the specified WSL distributions to a gzipped
+The **Export-WslDistribution** cmdlet exports each of the specified WSL distributions to a gzipped
 tarball (.tar.gz file).
 
 You can export multiple distributions by specifying a directory as the Destination. In this case,
@@ -164,3 +164,10 @@ D:\\wsl:
 ```powershell
 Import-WslDistribution D:\backup\*.tar.gz D:\wsl
 ```
+
+### Stop-Wsl
+
+The **Stop-Wsl** cmdlet terminates all WSL distribution, and for WSL2 also shuts down the lightweight
+utility VM.
+
+This cmdlet wraps the functionality of `wsl.exe --shutdown`.
