@@ -131,7 +131,7 @@ function Get-WslDistributionHelper()
             }
 
             # Check if it's running.
-            # N.B. Other states such as 
+            # N.B. Other states such as installing can't be distinguished with older versions.
             if ($running.Contains($_)) {
                 $distroState = [WslDistributionState]::Running
             }
