@@ -167,7 +167,7 @@ Import-WslDistribution D:\backup\*.tar.gz D:\wsl
 
 ### Stop-Wsl
 
-The **Stop-Wsl** cmdlet terminates all WSL distribution, and for WSL2 also shuts down the lightweight
+The **Stop-Wsl** cmdlet terminates all WSL distributions, and for WSL2 also shuts down the lightweight
 utility VM.
 
 This cmdlet wraps the functionality of `wsl.exe --shutdown`.
