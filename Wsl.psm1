@@ -6,12 +6,6 @@ enum WslDistributionState {
     Converting
 }
 
-$wslPath = "$env:windir\system32\wsl.exe"
-if (-not [System.Environment]::Is64BitProcess) {
-    # Allow launching WSL from 32 bit powershell
-    $wslPath = "$env:windir\sysnative\wsl.exe"
-}
-
 class WslDistribution
 {
     WslDistribution()
@@ -32,6 +26,14 @@ class WslDistribution
     [WslDistributionState]$State
     [int]$Version
     [bool]$Default
+    [Guid]$Guid
+    [string]$BasePath
+}
+
+$wslPath = "$env:windir\system32\wsl.exe"
+if (-not [System.Environment]::Is64BitProcess) {
+    # Allow launching WSL from 32 bit powershell
+    $wslPath = "$env:windir\sysnative\wsl.exe"
 }
 
 function Invoke-Wsl
@@ -80,7 +82,7 @@ function Invoke-Wsl
     }
 }
 
-function Get-WslDistributionHelper
+function Get-WslDistributionHelper()
 {
     # Use --verbose if it's available.
     if ([System.Environment]::OSVersion.Version.Build -ge 18917) {
@@ -129,6 +131,18 @@ function Get-WslDistributionHelper
                 "Version" = 1
                 "Default" = $defaultDistro
             }
+        }
+    }
+}
+
+function Get-WslDistributionProperties([WslDistribution]$Distribution)
+{
+    $key = Get-ChildItem "hkcu:\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss" | Get-ItemProperty | Where-Object { $_.DistributionName -eq $Distribution.Name }
+    if ($key.Length -eq 1) {
+        $Distribution.DistroGuid = $key.PSChildName
+        $Distribution.BasePath = $key.BasePath
+        if ($Distribution.BasePath.StartsWith("\\?\")) {
+            $Distribution.BasePath = $Distribution.BasePath.Substring(4)
         }
     }
 }
@@ -256,6 +270,10 @@ function Get-WslDistribution
                 
                 return $false
             }
+        }
+
+        $distributions | ForEach-Object {
+            Get-WslDistributionProperties $_
         }
 
         return $distributions
