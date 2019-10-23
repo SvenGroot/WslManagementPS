@@ -12,7 +12,7 @@ distribution names for all the commands.
 This module suppors both Windows PowerShell and PowerShell Core. It can also be run on PowerShell
 Core for Linux in WSL itself, although a few features aren't available.
 
-# Why use this module?
+## Why use this module?
 
 This module offers the following advantages over plain wsl.exe:
 
