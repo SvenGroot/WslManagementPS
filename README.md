@@ -24,7 +24,15 @@ This module offers the following advantages over plain wsl.exe:
 
 ## Installing the module
 
-Download the the project as a ZIP file, and copy the files to a folder named Wsl in your `$PSModulePath`.
+The WSL PowerShell module is available on [PowerShell Gallery](https://www.powershellgallery.com/packages/Wsl),
+and can be installed with the `Install-Module` command:
+
+```powershell
+Install-Module Wsl
+```
+
+You can also download the the project from GitHub as a ZIP file, and copy the files to a folder
+named Wsl in your `$PSModulePath`.
 
 ## Provided commands
 
