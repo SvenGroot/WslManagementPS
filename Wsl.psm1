@@ -26,6 +26,11 @@ class WslDistribution
         $this | Add-Member MemberSet PSStandardMembers $PSStandardMembers
     }
 
+    [string] ToString()
+    {
+        return $this.Name
+    }
+
     [string]$Name
     [WslDistributionState]$State
     [int]$Version
