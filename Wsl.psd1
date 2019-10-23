@@ -1,3 +1,4 @@
+# Copyright (c) Sven Groot. See LICENSE for details.
 #
 # Module manifest for module 'Wsl'
 #

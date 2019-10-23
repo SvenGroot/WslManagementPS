@@ -1,3 +1,6 @@
+# Copyright (c) Sven Groot. See LICENSE for details.
+
+# Represents the state of a distribution.
 enum WslDistributionState {
     Stopped
     Running
@@ -6,6 +9,7 @@ enum WslDistributionState {
     Converting
 }
 
+# Represents a WSL distribution.
 class WslDistribution
 {
     WslDistribution()
