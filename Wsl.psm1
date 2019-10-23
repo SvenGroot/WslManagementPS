@@ -30,6 +30,11 @@ class WslDistribution
     [string]$BasePath
 }
 
+# Ensure IsWindows is set for Windows PowerShell to make future checks easier.
+if ($PSVersionTable.PSVersion.Major -lt 6) {
+    $IsWindows = $true
+}
+
 if ($IsWindows) {
     $wslPath = "$env:windir\system32\wsl.exe"
     if (-not [System.Environment]::Is64BitProcess) {
@@ -117,30 +122,42 @@ function Get-WslDistributionHelper()
         # Fall back to the old command line (version will always be 1 in this case).
         # N.B. This is intended for Windows 10 version 1903; this script won't work on older
         #      versions that use wslconfig.exe
-        $running = Invoke-Wsl --list --running
+        try { 
+            $running = Invoke-Wsl --list --running 
+
+        } catch {
+            # Wsl.exe returns a non-zero error code if there are no running distros, so ignore the
+            # error.
+            $running = @()
+        }
+
         Invoke-Wsl --list | Select-Object -Skip 1 | ForEach-Object {
-            $name = $_
-            $defaultDistro = $false
-            $distroState = [WslDistributionState]::Stopped
+            # A line-ending translation bug in wsl.exe causes some of the output of wsl.exe --list
+            # to look like blank lines when redirected.
+            if ($_.Length -gt 0) {
+                $name = $_
+                $defaultDistro = $false
+                $distroState = [WslDistributionState]::Stopped
 
-            # "Default" is localized to just match on the (), which is illegal in a distribution name.
-            $index = $name.IndexOf("(")
-            if ($index -ge 0) {
-                $defaultDistro = $true
-                $name = $name.Substring(0, $index).Trim()
-            }
+                # "Default" is localized to just match on the (), which is illegal in a distribution name.
+                $index = $name.IndexOf("(")
+                if ($index -ge 0) {
+                    $defaultDistro = $true
+                    $name = $name.Substring(0, $index).Trim()
+                }
 
-            # Check if it's running.
-            # N.B. Other states such as installing can't be distinguished with older versions.
-            if ($running.Contains($_)) {
-                $distroState = [WslDistributionState]::Running
-            }
+                # Check if it's running.
+                # N.B. Other states such as installing can't be distinguished with older versions.
+                if ($running.Contains($_)) {
+                    $distroState = [WslDistributionState]::Running
+                }
 
-            [WslDistribution]@{
-                "Name" = $name
-                "State" = $distroState
-                "Version" = 1
-                "Default" = $defaultDistro
+                [WslDistribution]@{
+                    "Name" = $name
+                    "State" = $distroState
+                    "Version" = 1
+                    "Default" = $defaultDistro
+                }
             }
         }
     }
@@ -150,8 +167,8 @@ function Get-WslDistributionHelper()
 function Get-WslDistributionProperties([WslDistribution]$Distribution)
 {
     $key = Get-ChildItem "hkcu:\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss" | Get-ItemProperty | Where-Object { $_.DistributionName -eq $Distribution.Name }
-    if ($key.Length -eq 1) {
-        $Distribution.DistroGuid = $key.PSChildName
+    if ($key) {
+        $Distribution.Guid = $key.PSChildName
         $Distribution.BasePath = $key.BasePath
         if ($Distribution.BasePath.StartsWith("\\?\")) {
             $Distribution.BasePath = $Distribution.BasePath.Substring(4)
