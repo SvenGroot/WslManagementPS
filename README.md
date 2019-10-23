@@ -12,9 +12,19 @@ distribution names for all the commands.
 This module suppors both Windows PowerShell and PowerShell Core. It can also be run on PowerShell
 Core for Linux in WSL itself, although a few features aren't available.
 
+# Why use this module?
+
+This module offers the following advantages over plain wsl.exe:
+
+- Parses the output of wsl.exe into PowerShell objects to make the information easier to access.
+- Makes it easy to access additional distribution information such as the the install folder.
+- Tab completion and wildcard support for distribution names on the command line.
+- Easily perform operations on multiple distributions (e.g. stop or export/import multiple
+  distributions with a single command, or run a Linux command on multiple distributions).
+
 ## Installing the module
 
-Download the the project as a ZIP file, and copy the files to a folder names Wsl in your `$PSModulePath`.
+Download the the project as a ZIP file, and copy the files to a folder named Wsl in your `$PSModulePath`.
 
 ## Provided commands
 
@@ -163,6 +173,24 @@ D:\\wsl:
 
 ```powershell
 Import-WslDistribution D:\backup\*.tar.gz D:\wsl
+```
+
+### Invoke-WslCommand
+
+The **Invoke-WslCommand** cmdlet executes the specified command on the specified distributions, and
+then exist.
+
+This cmdlet will raise an error if executing wsl.exe failed (e.g. there is no distribution with
+the specified name) or if the command itself failed.
+
+This cmdlet wraps the functionality of `wsl.exe <command>`.
+
+You can use the arguments to specify the distribution name and user.
+
+For example, run a command in all WSL2 distributions:
+
+```powershell
+Get-WslDistribution -Version 2 | Invoke-WslCommand 'echo $(whoami) in $WSL_DISTRO_NAME' -User root
 ```
 
 ### Stop-Wsl

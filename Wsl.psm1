@@ -837,6 +837,107 @@ function Import-WslDistribution
 
 <#
 .SYNOPSIS
+Runs a command in one or more WSL distributions.
+
+.DESCRIPTION
+The Invoke-WslCommand cmdlet executes the specified command on the specified distributions, and
+then exist.
+
+This cmdlet will raise an error if executing wsl.exe failed (e.g. there is no distribution with
+the specified name) or if the command itself failed.
+
+This cmdlet wraps the functionality of "wsl.exe <command>".
+
+.PARAMETER Command
+Specifies the command to run.
+
+.PARAMETER DistributionName
+Specifies the distribution names of distributions to run the command in. Wildcards are permited.
+By default, the command is executed in the default distribution.
+
+.PARAMETER Distribution
+Specifies WslDistribution objects that represent the distributions to run the command in.
+By default, the command is executed in the default distribution.
+
+.PARAMETER User
+Specifies the name of a user in the distribution to run the command as. By default, the
+distribution's default user is used.
+
+.INPUTS
+WslDistribution, System.String
+
+You can pipe a WslDistribution object retrieved by Get-WslDistribution, or a string that contains
+the distribution name to this cmdlet.
+
+.OUTPUTS
+System.String
+
+This command outputs the result of the command you executed, as text.
+
+.EXAMPLE
+Invoke-WslCommand 'ls /etc'
+
+Runs a command in the default distribution.
+
+.EXAMPLE
+Invoke-WslCommand 'whoami' -DistributionName Ubuntu* -User root
+
+Runs a command in all distributions whose names start with Ubuntu, as the "root" user.
+
+.EXAMPLE
+Get-WslDistribution -Version 2 | Invoke-WslCommand 'echo $(whoami) in $WSL_DISTRO_NAME'
+
+Runs a command in all WSL2 distributions.
+#>
+function Invoke-WslCommand
+{
+    [CmdletBinding(SupportsShouldProcess=$true)]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Command,
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, ParameterSetName = "DistributionName", Position = 1)]
+        [ValidateNotNullOrEmpty()]
+        [SupportsWildCards()]
+        [string[]]$DistributionName,
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = "Distribution")]
+        [WslDistribution[]]$Distribution,
+        [Parameter(Mandatory = $false, Position = 2)]
+        [ValidateNotNullOrEmpty()]
+        [string]$User
+    )
+
+    process {
+        if ($PSCmdlet.ParameterSetName -eq "DistributionName") {
+            if ($DistributionName) {
+                $Distribution = Get-WslDistribution $DistributionName
+            } else {
+                $Distribution = Get-WslDistribution -Default
+            }
+        }
+
+        $Distribution | ForEach-Object {
+            $args = @("--distribution", $_.Name)
+            if ($User) {
+                $args += @("--user", $User)
+            }
+
+            # Invoke /bin/bash so the whole command can be passed as a single argument.
+            $args += @("/bin/bash", "-c", $Command)
+
+            if ($PSCmdlet.ShouldProcess($_.Name, "Invoke Command")) {
+                &$wslPath $args
+                if ($LASTEXITCODE -ne 0) {
+                    # Note: this could be the exit code of wsl.exe, or of the launched command.
+                    throw "Wsl.exe returned exit code $LASTEXITCODE"
+                }    
+            }
+        }
+    }
+}
+
+<#
+.SYNOPSIS
 Stops all WSL distributions.
 
 .DESCRIPTION
@@ -872,6 +973,7 @@ $tabCompletionScript = {
 }
 
 Register-ArgumentCompleter -CommandName Get-WslDistribution,Stop-WslDistribution,Set-WslDistribution,Remove-WslDistribution,Export-WslDistribution -ParameterName Name -ScriptBlock $tabCompletionScript
+Register-ArgumentCompleter -CommandName Invoke-WslCommand -ParameterName DistributionName -ScriptBlock $tabCompletionScript
 
 Export-ModuleMember Get-WslDistribution
 Export-ModuleMember Stop-WslDistribution
@@ -880,3 +982,4 @@ Export-ModuleMember Remove-WslDistribution
 Export-ModuleMember Export-WslDistribution
 Export-ModuleMember Import-WslDistribution
 Export-ModuleMember Stop-Wsl
+Export-ModuleMember Invoke-WslCommand
