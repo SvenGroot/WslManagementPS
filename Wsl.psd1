@@ -66,7 +66,15 @@ Description = 'PowerShell cmdlets to manage Windows Subsystem for Linux distribu
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @("Get-WslDistribution", "Set-WslDistribution", "Stop-WslDistribution", "Remove-WslDistribution", "Import-WslDistribution", "Export-WslDistribution", "Stop-Wsl")
+FunctionsToExport = @("Get-WslDistribution",
+    "Set-WslDistribution",
+    "Stop-WslDistribution",
+    "Remove-WslDistribution",
+    "Import-WslDistribution",
+    "Export-WslDistribution",
+    "Invoke-WslCommand",
+    "Enter-WslDistribution",
+    "Stop-Wsl")
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
