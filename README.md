@@ -178,7 +178,7 @@ Import-WslDistribution D:\backup\*.tar.gz D:\wsl
 ### Invoke-WslCommand
 
 The **Invoke-WslCommand** cmdlet executes the specified command on the specified distributions, and
-then exist.
+then exits.
 
 This cmdlet will raise an error if executing wsl.exe failed (e.g. there is no distribution with
 the specified name) or if the command itself failed.
@@ -193,9 +193,38 @@ For example, run a command in all WSL2 distributions:
 Get-WslDistribution -Version 2 | Invoke-WslCommand 'echo $(whoami) in $WSL_DISTRO_NAME' -User root
 ```
 
+### Enter-WslDistribution
+
+The **Enter-WslDistribution** cmdlet starts an interactive shell in the specified distribution.
+
+This cmdlet will raise an error if executing wsl.exe failed (e.g. there is no distribution with
+the specified name) or if the session exited with an error code.
+
+This cmdlet wraps the functionality of `wsl.exe` with no arguments other than possibly
+`--distribution` or `--user`.
+
+The main advantage of using this cmdlet over plain `wsl.exe` is the availability of tab completion
+on the distribution name, or the ability to pipe in a `WslDistribution` retrieved from another
+command.
+
+For example, to enter the Ubuntu distribution as the user root:
+
+```powershell
+Enter-WslDistribution Ubuntu root
+```
+
+To import a distribution and immediately start it:
+
+```powershell
+Import-WslDistribution D:\backup\Alpine.tar.gz D:\wsl -Passthru | Enter-WslDistribution
+```
+
 ### Stop-Wsl
 
 The **Stop-Wsl** cmdlet terminates all WSL distributions, and for WSL2 also shuts down the lightweight
 utility VM.
 
 This cmdlet wraps the functionality of `wsl.exe --shutdown`.
+
+There is no benefit to using this over `wsl.exe --shutdown`. It is provided purely for the sake of
+completionism.

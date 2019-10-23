@@ -195,7 +195,7 @@ The Get-WslDistribution cmdlet gets objects that represent the WSL distributions
 This cmdlet wraps the functionality of "wsl.exe --list --verbose".
 
 .PARAMETER Name
-Specifies the distribution names of distributions to be retrieved. Wildcards are permited. By
+Specifies the distribution names of distributions to be retrieved. Wildcards are permitted. By
 default, this cmdlet gets all of the distributions on the computer.
 
 .PARAMETER Default
@@ -333,7 +333,7 @@ Get-WslDistribution.
 This cmdlet wraps the functionality of "wsl.exe --terminate".
 
 .PARAMETER Name
-Specifies the distribution names of distributions to be terminated. Wildcards are permited.
+Specifies the distribution names of distributions to be terminated. Wildcards are permitted.
 
 .PARAMETER Distribution
 Specifies WslDistribution objects that represent the distributions to be terminated.
@@ -416,7 +416,7 @@ Get-WslDistribution.
 This cmdlet wraps the functionality of "wsl.exe --set-default" and "wsl.exe --set-version".
 
 .PARAMETER Name
-Specifies the distribution names of distributions to be configured. Wildcards are permited.
+Specifies the distribution names of distributions to be configured. Wildcards are permitted.
 
 .PARAMETER Distribution
 Specifies WslDistribution objects that represent the distributions to be configured.
@@ -522,7 +522,7 @@ Get-WslDistribution.
 This cmdlet wraps the functionality of "wsl.exe --unregister".
 
 .PARAMETER Name
-Specifies the distribution names of distributions to be removed. Wildcards are permited.
+Specifies the distribution names of distributions to be removed. Wildcards are permitted.
 
 .PARAMETER Distribution
 Specifies WslDistribution objects that represent the distributions to be removed.
@@ -597,7 +597,7 @@ this cmdlet will automatically create files using the distribution name with the
 This cmdlet wraps the functionality of "wsl.exe --export".
 
 .PARAMETER Name
-Specifies the distribution names of distributions to be exported. Wildcards are permited.
+Specifies the distribution names of distributions to be exported. Wildcards are permitted.
 
 .PARAMETER Distribution
 Specifies WslDistribution objects that represent the distributions to be exported.
@@ -700,7 +700,7 @@ name to the destination path. This allows you to import multiple distributions.
 This cmdlet wraps the functionality of "wsl.exe --import".
 
 .PARAMETER Path
-Specifies the path to a .tar.gz file to import. Wildcards are permited.
+Specifies the path to a .tar.gz file to import. Wildcards are permitted.
 
 .PARAMETER LiteralPath
 Specifies the path to a .tar.gz file to import. The value of LiteralPath is used exactly as it is
@@ -841,7 +841,7 @@ Runs a command in one or more WSL distributions.
 
 .DESCRIPTION
 The Invoke-WslCommand cmdlet executes the specified command on the specified distributions, and
-then exist.
+then exits.
 
 This cmdlet will raise an error if executing wsl.exe failed (e.g. there is no distribution with
 the specified name) or if the command itself failed.
@@ -852,7 +852,7 @@ This cmdlet wraps the functionality of "wsl.exe <command>".
 Specifies the command to run.
 
 .PARAMETER DistributionName
-Specifies the distribution names of distributions to run the command in. Wildcards are permited.
+Specifies the distribution names of distributions to run the command in. Wildcards are permitted.
 By default, the command is executed in the default distribution.
 
 .PARAMETER Distribution
@@ -938,6 +938,93 @@ function Invoke-WslCommand
 
 <#
 .SYNOPSIS
+Enters a session in a WSL distribution.
+
+.DESCRIPTION
+The Enter-WslDistribution cmdlet starts an interactive shell in the specified distribution.
+
+This cmdlet will raise an error if executing wsl.exe failed (e.g. there is no distribution with
+the specified name) or if the session exited with an error code.
+
+This cmdlet wraps the functionality of "wsl.exe" with no arguments other than possibly
+"--distribution" or "--user".
+
+.PARAMETER Name
+Specifies the name of the distribution to enter. Wildcards are NOT permitted.
+By default, the command enters the default distribution.
+
+.PARAMETER Distribution
+Specifies a WslDistribution object that represent the distributions to enter.
+By default, the command is executed in the default distribution.
+
+.PARAMETER User
+Specifies the name of a user in the distribution to enter as. By default, the
+distribution's default user is used.
+
+.INPUTS
+WslDistribution, System.String
+
+You can pipe a WslDistribution object retrieved by Get-WslDistribution, or a string that contains
+the distribution name to this cmdlet.
+
+.OUTPUTS
+None. This cmdlet does not return any output.
+
+.EXAMPLE
+Enter-WslDistribution
+
+Start a shell in the default distribution.
+
+.EXAMPLE
+Enter-WslDistribution Ubuntu root
+
+Starts a shell in the distribution named "Ubuntu" using the "root" user.
+
+.EXAMPLE
+Import-WslDistribution D:\backup\Alpine.tar.gz D:\wsl -Passthru | Enter-WslDistribution
+
+Imports a WSL distribution and immediately opens a shell in that distribution.
+#>
+function Enter-WslDistribution
+{
+    [CmdletBinding(SupportsShouldProcess=$true)]
+    param(
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, ParameterSetName = "DistributionName", Position = 0)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Name,
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = "Distribution")]
+        [WslDistribution]$Distribution,
+        [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateNotNullOrEmpty()]
+        [string]$User
+    )
+
+    process {
+        if ($PSCmdlet.ParameterSetName -eq "Distribution") {
+            $Name = $Distribution.Name
+        }
+
+        $args = @()
+        if ($Name) {
+            $args = @("--distribution", $Name)
+        }
+
+        if ($User) {
+            $args = @("--user", $User)
+        }
+
+        if ($PSCmdlet.ShouldProcess($Name, "Enter WSL")) {
+            &$wslPath $args
+            if ($LASTEXITCODE -ne 0) {
+                # Note: this could be the exit code of wsl.exe, or of the shell.
+                throw "Wsl.exe returned exit code $LASTEXITCODE"
+            }    
+        }
+    }
+}
+
+<#
+.SYNOPSIS
 Stops all WSL distributions.
 
 .DESCRIPTION
@@ -972,7 +1059,7 @@ $tabCompletionScript = {
     (Get-WslDistributionHelper).Name | Where-Object { $_ -ilike "$wordToComplete*" } | Sort-Object
 }
 
-Register-ArgumentCompleter -CommandName Get-WslDistribution,Stop-WslDistribution,Set-WslDistribution,Remove-WslDistribution,Export-WslDistribution -ParameterName Name -ScriptBlock $tabCompletionScript
+Register-ArgumentCompleter -CommandName Get-WslDistribution,Stop-WslDistribution,Set-WslDistribution,Remove-WslDistribution,Export-WslDistribution,Enter-WslDistribution -ParameterName Name -ScriptBlock $tabCompletionScript
 Register-ArgumentCompleter -CommandName Invoke-WslCommand -ParameterName DistributionName -ScriptBlock $tabCompletionScript
 
 Export-ModuleMember Get-WslDistribution
@@ -981,5 +1068,6 @@ Export-ModuleMember Set-WslDistribution
 Export-ModuleMember Remove-WslDistribution
 Export-ModuleMember Export-WslDistribution
 Export-ModuleMember Import-WslDistribution
-Export-ModuleMember Stop-Wsl
 Export-ModuleMember Invoke-WslCommand
+Export-ModuleMember Enter-WslDistribution
+Export-ModuleMember Stop-Wsl
