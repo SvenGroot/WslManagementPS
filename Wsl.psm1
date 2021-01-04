@@ -110,7 +110,7 @@ function Get-WslDistributionHelper()
     # Use --verbose if it's available.
     # N.B. If running inside WSL, it's assumed verbose is available since it's harder to determine
     #      the Windows version number.
-    if ([System.Environment]::OSVersion.Version.Build -ge 18917 -or -not $IsWindows) {
+    if ([System.Environment]::OSVersion.Version.Build -ge 18362 -or -not $IsWindows) {
         Invoke-Wsl --list --verbose | Select-Object -Skip 1 | ForEach-Object { 
             $fields = $_.Split(@(" "), [System.StringSplitOptions]::RemoveEmptyEntries) 
             $defaultDistro = $false
