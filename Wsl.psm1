@@ -1025,6 +1025,56 @@ function Enter-WslDistribution
 
 <#
 .SYNOPSIS
+Rename the WSL distributions.
+.DESCRIPTION
+The Rename-WslDistribution cmdlet rename the distro object.
+.PARAMETER Name
+Specifies the distribution names to be renamed.
+.PARAMETER Newname
+Specifies the new distribution.
+.INPUTS
+System.String
+You can't pipe a distribution name to this cmdlet.
+.OUTPUTS
+WslDistribution
+The cmdlet returns objects that represent the distributions on the computer with new name.
+.EXAMPLE
+Rename-WslDistribution -Name "Ubuntu-20.04" -Newname "Ubuntu-renamed"
+Name             State Version Default
+----             ----- ------- -------
+Ubuntu-renamed Running       2    True
+Return the WSL2 distributions with new name.
+.EXAMPLE
+Rename-WslDistribution "Ubuntu-20.04" "Ubuntu-renamed"
+Name             State Version Default
+----             ----- ------- -------
+Ubuntu-renamed Running       2    True
+Return the WSL2 distributions with new name.
+#>
+
+function Rename-WslDistribution
+{
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true, ValueFromPipeline = $false, Position = 0)][string]$Name,
+        [Parameter(Mandatory=$true, ValueFromPipeline = $false, Position = 1)][string]$Newname
+    )
+    
+    begin{
+        if(!$(Get-WslDistribution -Name $Name)){Write-error "Missing distribution: $Name";return $false}
+        if([string]::IsNullOrEmpty($Newname)){Write-error "Error on newname: $Newname";return $false}
+    }
+
+    process{
+        $key = Get-ChildItem "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss" | Get-ItemProperty | Where-Object { $_.DistributionName -eq $Name }
+        Set-ItemProperty -Path $key.PSPath -Name DistributionName -Value $Newname
+    }
+
+    end{return $(Get-WslDistribution -Name $Newname)}
+}
+
+<#
+.SYNOPSIS
 Stops all WSL distributions.
 
 .DESCRIPTION
@@ -1059,7 +1109,7 @@ $tabCompletionScript = {
     (Get-WslDistributionHelper).Name | Where-Object { $_ -ilike "$wordToComplete*" } | Sort-Object
 }
 
-Register-ArgumentCompleter -CommandName Get-WslDistribution,Stop-WslDistribution,Set-WslDistribution,Remove-WslDistribution,Export-WslDistribution,Enter-WslDistribution -ParameterName Name -ScriptBlock $tabCompletionScript
+Register-ArgumentCompleter -CommandName Get-WslDistribution,Stop-WslDistribution,Set-WslDistribution,Remove-WslDistribution,Export-WslDistribution,Enter-WslDistribution,Rename-WslDistribution -ParameterName Name -ScriptBlock $tabCompletionScript
 Register-ArgumentCompleter -CommandName Invoke-WslCommand -ParameterName DistributionName -ScriptBlock $tabCompletionScript
 
 Export-ModuleMember Get-WslDistribution
@@ -1071,3 +1121,4 @@ Export-ModuleMember Import-WslDistribution
 Export-ModuleMember Invoke-WslCommand
 Export-ModuleMember Enter-WslDistribution
 Export-ModuleMember Stop-Wsl
+Export-ModuleMember Rename-WslDistribution
