@@ -227,6 +227,28 @@ To import a distribution and immediately start it:
 Import-WslDistribution D:\backup\Alpine.tar.gz D:\wsl -Passthru | Enter-WslDistribution
 ```
 
+### Rename-WslDistribution
+
+The **Rename-WslDistribution** cmdlet rename a existing WSL distro.
+
+For example, to rename the "Ubuntu-20.04" distribution to "Ubuntu-renamed":
+
+```powershell
+Rename-WslDistribution -Name "Ubuntu-20.04" -Newname "Ubuntu-renamed"
+```
+or
+```powershell
+Rename-WslDistribution "Ubuntu-20.04" "Ubuntu-renamed"
+```
+
+Return the WSL distro renamed:
+
+```powershell
+Name             State Version Default
+----             ----- ------- -------
+Ubuntu-renamed Running       2    True
+```
+
 ### Stop-Wsl
 
 The **Stop-Wsl** cmdlet terminates all WSL distributions, and for WSL2 also shuts down the lightweight
