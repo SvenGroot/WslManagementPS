@@ -61,41 +61,17 @@ if ($IsWindows) {
 function Invoke-Wsl
 {
     $hasError = $false
-    if ($PSVersionTable.PSVersion.Major -lt 6) {
-        try {
-            $oldOutputEncoding = [System.Console]::OutputEncoding
-            [System.Console]::OutputEncoding = [System.Text.Encoding]::Unicode
-            $output = &$wslPath $args
-            if ($LASTEXITCODE -ne 0) {
-                throw "Wsl.exe failed: $output"
-                $hasError = $true
-            }
 
-        } finally {
-            [System.Console]::OutputEncoding = $oldOutputEncoding
-        }
-
-    } else {
-        # Using Console.OutputEncoding is currently broken on PowerShell Core, so use an alternative
-        # method of starting wsl.exe.
-        # See: https://github.com/PowerShell/PowerShell/issues/10789
-        $startInfo = New-Object System.Diagnostics.ProcessStartInfo $wslPath
-        $args | ForEach-Object { $startInfo.ArgumentList.Add($_) }
-        $startInfo.RedirectStandardOutput = $true
-        $startInfo.StandardOutputEncoding = [System.Text.Encoding]::Unicode
-        $process = [System.Diagnostics.Process]::Start($startInfo)
-        $output = @()
-        while ($null -ne ($line = $process.StandardOutput.ReadLine())) {
-            if ($line.Length -gt 0) {
-                $output += $line
-            }
-        }
-
-        $process.WaitForExit()
-        if ($process.ExitCode -ne 0) {
+    $oldWslUtf8 = $Env:WSL_UTF8
+    try {
+        $Env:WSL_UTF8 = '1'
+        $output = &$wslPath $args
+        if ($LASTEXITCODE -ne 0) {
             throw "Wsl.exe failed: $output"
             $hasError = $true
         }
+    } finally {
+        $Env:WSL_UTF8 = $oldWslUtf8
     }
 
     # $hasError is used so there's no output in case error action is silently continue.
