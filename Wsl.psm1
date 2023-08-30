@@ -58,16 +58,15 @@ if ($IsWindows) {
 
 # Helper that will launch wsl.exe, correctly parsing its output encoding, and throwing an error
 # if it fails.
-function Invoke-Wsl
+function Invoke-Wsl([string[]]$WslArgs, [Switch]$AllowNoDistros)
 {
     $hasError = $false
     if ($PSVersionTable.PSVersion.Major -lt 6) {
         try {
             $oldOutputEncoding = [System.Console]::OutputEncoding
             [System.Console]::OutputEncoding = [System.Text.Encoding]::Unicode
-            $output = &$wslPath $args
+            $output = &$wslPath @WslArgs
             if ($LASTEXITCODE -ne 0) {
-                throw "Wsl.exe failed: $output"
                 $hasError = $true
             }
 
@@ -80,7 +79,7 @@ function Invoke-Wsl
         # method of starting wsl.exe.
         # See: https://github.com/PowerShell/PowerShell/issues/10789
         $startInfo = New-Object System.Diagnostics.ProcessStartInfo $wslPath
-        $args | ForEach-Object { $startInfo.ArgumentList.Add($_) }
+        $WslArgs | ForEach-Object { $startInfo.ArgumentList.Add($_) }
         $startInfo.RedirectStandardOutput = $true
         $startInfo.StandardOutputEncoding = [System.Text.Encoding]::Unicode
         $process = [System.Diagnostics.Process]::Start($startInfo)
@@ -93,15 +92,20 @@ function Invoke-Wsl
 
         $process.WaitForExit()
         if ($process.ExitCode -ne 0) {
-            throw "Wsl.exe failed: $output"
             $hasError = $true
         }
     }
 
     # $hasError is used so there's no output in case error action is silently continue.
-    if (-not $hasError) {
-        return $output
+    if ($hasError) {
+        if ($AllowNoDistros -and ($output | Where-Object { $_.Contains("WSL_E_DEFAULT_DISTRO_NOT_FOUND") })) {
+            return @()
+        }
+
+        throw "Wsl.exe failed: $output"
     }
+
+    return $output
 }
 
 # Helper to parse the output of wsl.exe --list
@@ -111,7 +115,7 @@ function Get-WslDistributionHelper()
     # N.B. If running inside WSL, it's assumed verbose is available since it's harder to determine
     #      the Windows version number.
     if ([System.Environment]::OSVersion.Version.Build -ge 18362 -or -not $IsWindows) {
-        Invoke-Wsl --list --verbose | Select-Object -Skip 1 | ForEach-Object { 
+        Invoke-Wsl "--list","--verbose" -AllowNoDistros | Select-Object -Skip 1 | ForEach-Object {
             $fields = $_.Split(@(" "), [System.StringSplitOptions]::RemoveEmptyEntries) 
             $defaultDistro = $false
             if ($fields.Count -eq 4) {
@@ -132,7 +136,7 @@ function Get-WslDistributionHelper()
         # N.B. This is intended for Windows 10 version 1903; this script won't work on older
         #      versions that use wslconfig.exe
         try { 
-            $running = Invoke-Wsl --list --running 
+            $running = Invoke-Wsl "--list","--running"
 
         } catch {
             # Wsl.exe returns a non-zero error code if there are no running distros, so ignore the
@@ -140,7 +144,7 @@ function Get-WslDistributionHelper()
             $running = @()
         }
 
-        Invoke-Wsl --list | Select-Object -Skip 1 | ForEach-Object {
+        Invoke-Wsl "--list" -AllowNoDistros | Select-Object -Skip 1 | ForEach-Object {
             # A line-ending translation bug in wsl.exe causes some of the output of wsl.exe --list
             # to look like blank lines when redirected.
             if ($_.Length -gt 0) {
@@ -148,7 +152,7 @@ function Get-WslDistributionHelper()
                 $defaultDistro = $false
                 $distroState = [WslDistributionState]::Stopped
 
-                # "Default" is localized to just match on the (), which is illegal in a distribution name.
+                # "Default" is localized, so just match on the (), which is illegal in a distribution name.
                 $index = $name.IndexOf("(")
                 if ($index -ge 0) {
                     $defaultDistro = $true
@@ -398,7 +402,7 @@ function Stop-WslDistribution
                 Write-Warning "Distribution $($_.Name) is not running."
 
             } elseif ($PSCmdlet.ShouldProcess($_.Name, "Terminate")) {
-                Invoke-Wsl --terminate $_.Name
+                Invoke-Wsl "--terminate",$_.Name
             }
         }
     }
@@ -489,7 +493,7 @@ function Set-WslDistribution
 
                 } elseif ($PSCmdlet.ShouldProcess($Distribution.Name, "Set Version")) {
                     # Suppress output since it messes with passthru
-                    Invoke-Wsl --set-version $Distribution.Name $Version | Out-Null
+                    Invoke-Wsl "--set-version",$Distribution.Name,$Version | Out-Null
                 }
             }
 
@@ -498,7 +502,7 @@ function Set-WslDistribution
                     Write-Warning "The distribution '$($Distribution.Name)' is already the default."
 
                 } if ($PSCmdlet.ShouldProcess($Distribution.Name, "Set Default")) {
-                    Invoke-Wsl --set-default $Distribution.Name | Out-Null
+                    Invoke-Wsl "--set-default",$Distribution.Name | Out-Null
                 }
             }
 
@@ -571,12 +575,18 @@ function Remove-WslDistribution
     process
     {
         if ($PSCmdlet.ParameterSetName -eq "DistributionName") {
-            $Distribution = Get-WslDistribution $Name
+            $distros = Get-WslDistribution $Name
+            if ($distros.Length -eq 0) {
+                throw "There is no distribution with the name '$Name'."
+            }
+    
+        } else {
+            $distros = $Distribution
         }
 
-        $Distribution | ForEach-Object {
+        $distros | ForEach-Object {
             if ($PSCmdlet.ShouldProcess($_.Name, "Unregister")) {
-                Invoke-Wsl --unregister $_.Name | Out-Null
+                Invoke-Wsl "--unregister",$_.Name | Out-Null
             }
         }
     }
@@ -676,7 +686,7 @@ function Export-WslDistribution
             }
 
             if ($PSCmdlet.ShouldProcess("Name: $($_.Name), Path: $fullPath", "Export")) {
-                Invoke-Wsl --export $_.Name $fullPath
+                Invoke-Wsl "--export",$_.Name,$fullPath
             }
 
             if ($Passthru) {
@@ -820,12 +830,12 @@ function Import-WslDistribution
             }
 
             if ($PSCmdlet.ShouldProcess("Path: $($_.FullName), Destination: $DistributionDestination, Name: $DistributionName", "Import")) {
-                $args = @("--import", $DistributionName, $DistributionDestination, $_.FullName)
+                $wslArgs = @("--import", $DistributionName, $DistributionDestination, $_.FullName)
                 if ($Version -ne 0) {
-                    $args += @("--version", $Version)
+                    $wslArgs += @("--version", $Version)
                 }
 
-                Invoke-Wsl @args
+                Invoke-Wsl $wslArgs
             }
 
             if ($Passthru) {
@@ -917,16 +927,16 @@ function Invoke-WslCommand
         }
 
         $Distribution | ForEach-Object {
-            $args = @("--distribution", $_.Name)
+            $wslArgs = @("--distribution", $_.Name)
             if ($User) {
-                $args += @("--user", $User)
+                $wslArgs += @("--user", $User)
             }
 
             # Invoke /bin/bash so the whole command can be passed as a single argument.
-            $args += @("/bin/bash", "-c", $Command)
+            $wslArgs += @("/bin/bash", "-c", $Command)
 
             if ($PSCmdlet.ShouldProcess($_.Name, "Invoke Command")) {
-                &$wslPath $args
+                &$wslPath $wslArgs
                 if ($LASTEXITCODE -ne 0) {
                     # Note: this could be the exit code of wsl.exe, or of the launched command.
                     throw "Wsl.exe returned exit code $LASTEXITCODE"
@@ -1004,17 +1014,17 @@ function Enter-WslDistribution
             $Name = $Distribution.Name
         }
 
-        $args = @()
+        $wslArgs = @()
         if ($Name) {
-            $args = @("--distribution", $Name)
+            $wslArgs = @("--distribution", $Name)
         }
 
         if ($User) {
-            $args = @("--user", $User)
+            $wslArgs = @("--user", $User)
         }
 
         if ($PSCmdlet.ShouldProcess($Name, "Enter WSL")) {
-            &$wslPath $args
+            &$wslPath $wslArgs
             if ($LASTEXITCODE -ne 0) {
                 # Note: this could be the exit code of wsl.exe, or of the shell.
                 throw "Wsl.exe returned exit code $LASTEXITCODE"
@@ -1050,7 +1060,7 @@ function Stop-Wsl
     param()
 
     if ($PSCmdlet.ShouldProcess("Wsl", "Shutdown")) {
-        Invoke-Wsl --shutdown
+        Invoke-Wsl "--shutdown"
     }
 }
 
