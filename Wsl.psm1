@@ -58,7 +58,7 @@ if ($IsWindows) {
 
 # Helper that will launch wsl.exe, correctly parsing its output encoding, and throwing an error
 # if it fails.
-function Invoke-Wsl([string[]]$WslArgs, [Switch]$AllowNoDistros)
+function Invoke-Wsl([string[]]$WslArgs, [Switch]$IgnoreErrors)
 {
     $hasError = $false
     if ($PSVersionTable.PSVersion.Major -lt 6) {
@@ -98,7 +98,7 @@ function Invoke-Wsl([string[]]$WslArgs, [Switch]$AllowNoDistros)
 
     # $hasError is used so there's no output in case error action is silently continue.
     if ($hasError) {
-        if ($AllowNoDistros -and ($output | Where-Object { $_.Contains("WSL_E_DEFAULT_DISTRO_NOT_FOUND") })) {
+        if ($IgnoreErrors) {
             return @()
         }
 
@@ -111,67 +111,19 @@ function Invoke-Wsl([string[]]$WslArgs, [Switch]$AllowNoDistros)
 # Helper to parse the output of wsl.exe --list
 function Get-WslDistributionHelper()
 {
-    # Use --verbose if it's available.
-    # N.B. If running inside WSL, it's assumed verbose is available since it's harder to determine
-    #      the Windows version number.
-    if ([System.Environment]::OSVersion.Version.Build -ge 18362 -or -not $IsWindows) {
-        Invoke-Wsl "--list","--verbose" -AllowNoDistros | Select-Object -Skip 1 | ForEach-Object {
-            $fields = $_.Split(@(" "), [System.StringSplitOptions]::RemoveEmptyEntries) 
-            $defaultDistro = $false
-            if ($fields.Count -eq 4) {
-                $defaultDistro = $true
-                $fields = $fields | Select-Object -Skip 1
-            }
-
-            [WslDistribution]@{
-                "Name" = $fields[0]
-                "State" = $fields[1]
-                "Version" = [int]$fields[2]
-                "Default" = $defaultDistro
-            }
+    Invoke-Wsl "--list","--verbose" -IgnoreErrors | Select-Object -Skip 1 | ForEach-Object {
+        $fields = $_.Split(@(" "), [System.StringSplitOptions]::RemoveEmptyEntries) 
+        $defaultDistro = $false
+        if ($fields.Count -eq 4) {
+            $defaultDistro = $true
+            $fields = $fields | Select-Object -Skip 1
         }
 
-    } else {
-        # Fall back to the old command line (version will always be 1 in this case).
-        # N.B. This is intended for Windows 10 version 1903; this script won't work on older
-        #      versions that use wslconfig.exe
-        try { 
-            $running = Invoke-Wsl "--list","--running"
-
-        } catch {
-            # Wsl.exe returns a non-zero error code if there are no running distros, so ignore the
-            # error.
-            $running = @()
-        }
-
-        Invoke-Wsl "--list" -AllowNoDistros | Select-Object -Skip 1 | ForEach-Object {
-            # A line-ending translation bug in wsl.exe causes some of the output of wsl.exe --list
-            # to look like blank lines when redirected.
-            if ($_.Length -gt 0) {
-                $name = $_
-                $defaultDistro = $false
-                $distroState = [WslDistributionState]::Stopped
-
-                # "Default" is localized, so just match on the (), which is illegal in a distribution name.
-                $index = $name.IndexOf("(")
-                if ($index -ge 0) {
-                    $defaultDistro = $true
-                    $name = $name.Substring(0, $index).Trim()
-                }
-
-                # Check if it's running.
-                # N.B. Other states such as installing can't be distinguished with older versions.
-                if ($running.Contains($_)) {
-                    $distroState = [WslDistributionState]::Running
-                }
-
-                [WslDistribution]@{
-                    "Name" = $name
-                    "State" = $distroState
-                    "Version" = 1
-                    "Default" = $defaultDistro
-                }
-            }
+        [WslDistribution]@{
+            "Name" = $fields[0]
+            "State" = $fields[1]
+            "Version" = [int]$fields[2]
+            "Default" = $defaultDistro
         }
     }
 }
