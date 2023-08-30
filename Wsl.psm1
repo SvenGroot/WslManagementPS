@@ -56,6 +56,11 @@ if ($IsWindows) {
     $wslPath = "wsl.exe"
 }
 
+function Get-UnresolvedProviderPath([string]$Path)
+{
+    return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
+}
+
 # Helper that will launch wsl.exe, correctly parsing its output encoding, and throwing an error
 # if it fails.
 function Invoke-Wsl([string[]]$WslArgs, [Switch]$IgnoreErrors)
@@ -767,22 +772,23 @@ function Import-WslDistribution
         }    
 
         $files | ForEach-Object {
-            $DistributionName = $Name
-            if ($DistributionName -eq "") {
-                $DistributionName = $_.BaseName
+            $distributionName = $Name
+            if ($distributionName -eq "") {
+                $distributionName = $_.BaseName
                 # If the file name is .tar.gz, the base name isn't what we want.
-                if ($DistributionName.EndsWith(".tar", "OrdinalIgnoreCase")) {
-                    $DistributionName = $DistributionName.Substring(0, $DistributionName.Length - 4)
+                if ($distributionName.EndsWith(".tar", "OrdinalIgnoreCase")) {
+                    $distributionName = $distributionName.Substring(0, $distributionName.Length - 4)
                 }
             }
 
-            $DistributionDestination = $Destination
+            $distributionDestination = $Destination
             if (-not $RawDestination) {
-                $DistributionDestination = Join-Path $DistributionDestination $DistributionName
+                $distributionDestination = Join-Path $distributionDestination $distributionName
             }
 
-            if ($PSCmdlet.ShouldProcess("Path: $($_.FullName), Destination: $DistributionDestination, Name: $DistributionName", "Import")) {
-                $wslArgs = @("--import", $DistributionName, $DistributionDestination, $_.FullName)
+            $distributionDestination = Get-UnresolvedProviderPath $distributionDestination
+            if ($PSCmdlet.ShouldProcess("Path: $($_.FullName), Destination: $distributionDestination, Name: $distributionName", "Import")) {
+                $wslArgs = @("--import", $distributionName, $distributionDestination, $_.FullName)
                 if ($Version -ne 0) {
                     $wslArgs += @("--version", $Version)
                 }
