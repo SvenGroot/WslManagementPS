@@ -642,8 +642,9 @@ function Export-WslDistribution
                 throw "The path '$fullPath' already exists."
             }
 
+            $fullPath = Get-UnresolvedProviderPath $fullPath
             if ($PSCmdlet.ShouldProcess("Name: $($_.Name), Path: $fullPath", "Export")) {
-                Invoke-Wsl "--export",$_.Name,$fullPath
+                Invoke-Wsl "--export",$_.Name,$fullPath | Out-Null
             }
 
             if ($Passthru) {
@@ -793,7 +794,7 @@ function Import-WslDistribution
                     $wslArgs += @("--version", $Version)
                 }
 
-                Invoke-Wsl $wslArgs
+                Invoke-Wsl $wslArgs | Out-Null
             }
 
             if ($Passthru) {
