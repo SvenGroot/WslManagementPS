@@ -351,15 +351,26 @@ function Stop-WslDistribution
     process
     {
         if ($PSCmdlet.ParameterSetName -eq "DistributionName") {
-            $Distribution = Get-WslDistribution $Name
+            $distros = Get-WslDistribution $Name
+            if (-not $distros) {
+                throw "There is no distribution with the name '$Name'."
+            }
+
+        } else {
+            $distros = $Distribution
         }
 
-        $Distribution | ForEach-Object {
-            if ($Distribution.State -ne [WslDistributionState]::Running) {
+        $distros | ForEach-Object {
+            if ($_.State -ne [WslDistributionState]::Running) {
                 Write-Warning "Distribution $($_.Name) is not running."
 
             } elseif ($PSCmdlet.ShouldProcess($_.Name, "Terminate")) {
                 Invoke-Wsl "--terminate",$_.Name
+            }
+
+            if ($Passthru) {
+                # Re-query to get the updated state.
+                Get-WslDistribution $_.Name
             }
         }
     }
@@ -440,32 +451,38 @@ function Set-WslDistribution
     process
     {
         if ($PSCmdlet.ParameterSetName -eq "DistributionName") {
-            $Distribution = Get-WslDistribution $Name
+            $distros = Get-WslDistribution $Name
+            if (-not $distros) {
+                throw "There is no distribution with the name '$Name'."
+            }
+
+        } else {
+            $distros = $Distribution
         }
 
-        $Distribution | ForEach-Object {
+        $distros | ForEach-Object {
             if ($Version -ne 0) {
-                if ($Distribution.Version -eq $Version) {
-                    Write-Warning "The distribution '$($Distribution.Name)' is already the requested version."
+                if ($_.Version -eq $Version) {
+                    Write-Warning "The distribution '$($_.Name)' is already the requested version."
 
-                } elseif ($PSCmdlet.ShouldProcess($Distribution.Name, "Set Version")) {
+                } elseif ($PSCmdlet.ShouldProcess($_.Name, "Set Version")) {
                     # Suppress output since it messes with passthru
-                    Invoke-Wsl "--set-version",$Distribution.Name,$Version | Out-Null
+                    Invoke-Wsl "--set-version",$_.Name,$Version | Out-Null
                 }
             }
 
             if ($Default) {
-                if ($Distribution.Default) {
-                    Write-Warning "The distribution '$($Distribution.Name)' is already the default."
+                if ($_.Default) {
+                    Write-Warning "The distribution '$($_.Name)' is already the default."
 
-                } if ($PSCmdlet.ShouldProcess($Distribution.Name, "Set Default")) {
-                    Invoke-Wsl "--set-default",$Distribution.Name | Out-Null
+                } if ($PSCmdlet.ShouldProcess($_.Name, "Set Default")) {
+                    Invoke-Wsl "--set-default",$_.Name | Out-Null
                 }
             }
 
             # Get updated info for pass-through.
             if ($Passthru) {
-                Get-WslDistribution $Distribution.Name
+                Get-WslDistribution $_.Name
             }
         }
     }
@@ -629,10 +646,16 @@ function Export-WslDistribution
     process
     {
         if ($PSCmdlet.ParameterSetName -eq "DistributionName") {
-            $Distribution = Get-WslDistribution $Name
+            $distros = Get-WslDistribution $Name
+            if (-not $distros) {
+                throw "There is no distribution with the name '$Name'."
+            }
+
+        } else {
+            $distros = $Distribution
         }
 
-        $Distribution | ForEach-Object {
+        $distros | ForEach-Object {
             $fullPath = $Destination
             if (Test-Path $Destination -PathType Container) {
                 $fullPath = Join-Path $Destination "$($_.Name).tar.gz"
@@ -648,7 +671,7 @@ function Export-WslDistribution
             }
 
             if ($Passthru) {
-                $Distribution
+                $_
             }
         }
     }
@@ -879,20 +902,30 @@ function Invoke-WslCommand
     process {
         if ($PSCmdlet.ParameterSetName -eq "DistributionName") {
             if ($DistributionName) {
-                $Distribution = Get-WslDistribution $DistributionName
+                $distros = Get-WslDistribution $DistributionName
+                if (-not $distros) {
+                    throw "There is no distribution with the name '$DistributionName'."
+                }
+
             } else {
-                $Distribution = Get-WslDistribution -Default
+                $distros = Get-WslDistribution -Default
+                if (-not $distros) {
+                    throw "There is no default distribution."
+                }
             }
+
+        } else {
+            $distros = $Distribution
         }
 
-        $Distribution | ForEach-Object {
+        $distros | ForEach-Object {
             $wslArgs = @("--distribution", $_.Name)
             if ($User) {
                 $wslArgs += @("--user", $User)
             }
 
-            # Invoke /bin/bash so the whole command can be passed as a single argument.
-            $wslArgs += @("/bin/bash", "-c", $Command)
+            # Invoke /bin/sh so the whole command can be passed as a single argument.
+            $wslArgs += @("/bin/sh", "-c", $Command)
 
             if ($PSCmdlet.ShouldProcess($_.Name, "Invoke Command")) {
                 &$wslPath $wslArgs
