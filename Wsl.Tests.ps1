@@ -1,3 +1,14 @@
+# When adding new functionality, you should:
+# - Write tests for the new functionality.
+# - Run the tests on both PowerShell Core and Windows PowerShell.
+# - Run the tests against the latest WSL store version.
+# - Run the tests against the oldest supported WSL inbox version, which should be the oldest Windows
+#   version still in mainstream support.
+#   - See https://learn.microsoft.com/lifecycle/products/windows-10-home-and-pro
+#
+# These tests are not designed to run in PowerShell on Linux inside WSL; only run them directly in
+# Windows.
+
 #Requires -Modules @{ ModuleName="Pester"; ModuleVersion="5.0" }
 param(
     [Parameter(Mandatory=$false)][string]$TestDistroPath
@@ -165,11 +176,101 @@ Describe "WslManagementPS" {
         (Get-WslDistribution "wslps_test2").State | Should -Be "Stopped"
         (Get-WslDistribution "wslps_raw").State | Should -Be "Running"
         
-        # Exact name
+        # Exact name and passthru
         $distro = Stop-WslDistribution "wslps_raw" -Passthru
         Test-Distro $distro "wslps_raw" 2 "Stopped"
 
+        # Pipeline input
+        Invoke-WslCommand "echo foo" "wslps_*" *> $null
+        (Get-WslDistribution "wslps_test").State | Should -Be "Running"
+        (Get-WslDistribution "wslps_test2").State | Should -Be "Running"
+        (Get-WslDistribution "wslps_raw").State | Should -Be "Running"
+        Get-WslDistribution -Version 2 | Stop-WslDistribution
+        (Get-WslDistribution "wslps_test").State | Should -Be "Running"
+        (Get-WslDistribution "wslps_test2").State | Should -Be "Stopped"
+        (Get-WslDistribution "wslps_raw").State | Should -Be "Stopped"
+
         # Non-existent
         { Stop-WslDistribution "wslps_bogus" } | Should -Throw "There is no distribution with the name 'wslps_bogus'."
+    }
+
+    It "Can run commands" {
+        # Default distro
+        # Redirect stderr to avoid printing warnings if the current directory can't be translated.
+        Invoke-WslCommand "whoami" 2> $null | Should -Be "root"
+        
+        $uncPrefix = "wsl.localhost"
+
+        # Specific distro
+        $output = Invoke-WslCommand "cd; wslpath -w ." "wslps_raw" 2> $null
+        if ($output -eq "\\wsl$\wslps_raw\root") {
+            # Older WSL versions use this as the prefix.
+            $uncPrefix = "wsl$"
+
+        } else {
+            $output | Should -Be "\\wsl.localhost\wslps_raw\root"
+        }
+
+        # Wildcards
+        $output = Invoke-WslCommand "cd; wslpath -w ." "wslps_test*" 2> $null
+        $output | Should -HaveCount 2
+        $output | Should -Contain "\\$uncPrefix\wslps_test\root"
+        $output | Should -Contain "\\$uncPrefix\wslps_test2\root"
+
+        # Pipeline input
+        $output = Get-WslDistribution -Version 2 | Invoke-WslCommand "cd; wslpath -w ." 2> $null
+        $output | Should -HaveCount 2
+        $output | Should -Contain "\\$uncPrefix\wslps_raw\root"
+        $output | Should -Contain "\\$uncPrefix\wslps_test2\root"
+
+        # Non-existent
+        { Invoke-WslCommand "whoami" "wslps_bogus" } | Should -Throw "There is no distribution with the name 'wslps_bogus'."
+    }
+
+    It "Can set distribution properties" {
+        # Specific distro
+        $distro = Set-WslDistribution "wslps_test" -Version 2 -Passthru
+        Test-Distro $distro "wslps_test" 2 "Stopped" -Default
+
+        # Wildcards
+        $distros = Set-WslDistribution "wslps_test*" -Version 1 -Passthru
+        Test-Distro $distros[0] "wslps_test" 1 "Stopped" -Default
+        Test-Distro $distros[1] "wslps_test2" 1 "Stopped"
+
+        # Pipeline input
+        Get-WslDistribution -Version 1 | Set-WslDistribution -Version 2
+        Get-WslDistribution -Version 2 | Should -HaveCount 3
+
+        # Change default
+        Set-WslDistribution "wslps_test2" -Default
+        (Get-WslDistribution -Default).Name | Should -Be "wslps_test2"
+
+        # Non-existent
+        { Set-WslDistribution "wslps_bogus" -Version 2 } | Should -Throw "There is no distribution with the name 'wslps_bogus'."
+    }
+
+    It "Can stop WSL" {
+        # Invoke a command to start the distros.
+        Invoke-WslCommand "echo foo" "wslps_*" *> $null
+        Stop-WSL
+        Get-WslDistribution -State "Stopped" | Should -HaveCount 3
+        # Can't really test if the utility VM was stopped.
+    }
+
+    It "Can remove distributions" {
+        # Remove explicit name was tested in import/export test.
+        
+        # Wildcards
+        Remove-WslDistribution "wslps_test*"
+        $distros = Get-WslDistribution
+        $distros | Should -HaveCount 1
+        $distros[0].Name | Should -Be "wslps_raw"
+        
+        # Pipeline input
+        Get-WslDistribution | Remove-WslDistribution
+        Get-WslDistribution | Should -BeNullOrEmpty
+
+        # Non-existent
+        { Remove-WslDistribution "wslps_bogus" } | Should -Throw "There is no distribution with the name 'wslps_bogus'."
     }
 }
