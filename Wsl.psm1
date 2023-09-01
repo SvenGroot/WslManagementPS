@@ -1078,6 +1078,48 @@ function Stop-Wsl
     }
 }
 
+function Add-VersionMember($Name, $Value, $Result) {
+    if ($Value) {
+        $Result | Add-Member -MemberType NoteProperty "${Name}VersionString" -Value $Value
+        $index = $Value.IndexOf("-")
+        if ($index -ge 0) {
+            $Value = $Value.Substring(0, $index)
+        }
+
+        $version = [System.Version]::Parse($Value)
+        $Result | Add-Member -MemberType NoteProperty "${Name}Version" -Value $version
+    }
+}
+
+function Get-WslVersion
+{
+    $output = Invoke-Wsl "--version" -IgnoreErrors | ForEach-Object {
+        $index = $_.LastIndexOf(':')
+        if ($index -ge 0) {
+            $_.Substring($index + 1).Trim()
+        }
+    }
+
+    if ($output) {
+        # Maybe use a switch to select string or version object.
+        $result = [PSCustomObject]@{}
+        Add-VersionMember "Wsl" $output[0] $result
+        Add-VersionMember "Kernel" $output[1] $result
+        Add-VersionMember "WslG" $output[2] $result
+        Add-VersionMember "Msrdc" $output[3] $result
+        Add-VersionMember "Direct3D" $output[4] $result
+        Add-VersionMember "DXCore" $output[5] $result
+        Add-VersionMember "Windows" $output[6] $result
+    } else {
+        $result = @{
+            "WslVersionString" = "Inbox"
+            "WslVersion" = [System.Version]::new()
+        }
+    }
+
+    return $result
+}
+
 $tabCompletionScript = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
     (Get-WslDistributionHelper).Name | Where-Object { $_ -ilike "$wordToComplete*" } | Sort-Object
@@ -1095,3 +1137,4 @@ Export-ModuleMember Import-WslDistribution
 Export-ModuleMember Invoke-WslCommand
 Export-ModuleMember Enter-WslDistribution
 Export-ModuleMember Stop-Wsl
+Export-ModuleMember Get-WslVersion
