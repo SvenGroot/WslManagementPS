@@ -29,7 +29,7 @@ BeforeAll {
         }
 
         $Distro.BasePath | Should -Be $BasePath
-        $Distro.FileSystemPath | Should -Be "\\wsl$\$Name"
+        $Distro.FileSystemPath | Should -Be "\\wsl.localhost\$Name"
         $Distro.Default | Should -Be $Default
     }
 

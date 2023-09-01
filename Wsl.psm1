@@ -15,7 +15,7 @@ class WslDistribution
     WslDistribution()
     {
         $this | Add-Member -Name FileSystemPath -Type ScriptProperty -Value {
-            return "\\wsl$\$($this.Name)"
+            return "\\wsl.localhost\$($this.Name)"
         }
 
         $defaultDisplaySet = "Name","State","Version","Default"
