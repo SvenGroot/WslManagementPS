@@ -39,6 +39,17 @@ class WslDistribution
     [string]$BasePath
 }
 
+# Provides version of various WSL components.
+class WslVersionInfo {
+    [Version]$Wsl
+    [Version]$Kernel
+    [Version]$WslG
+    [Version]$Msrdc
+    [Version]$Direct3D
+    [Version]$DXCore
+    [Version]$Windows
+}
+
 # Ensure IsWindows is set for Windows PowerShell to make future checks easier.
 if ($PSVersionTable.PSVersion.Major -lt 6) {
     $IsWindows = $true
@@ -58,7 +69,14 @@ if ($IsWindows) {
 
 function Get-UnresolvedProviderPath([string]$Path)
 {
-    return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
+    if ($IsWindows) {
+        return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
+
+    } else {
+        # Don't translate on Linux, because absolute Linux paths will never work, and relative ones
+        # will.
+        return $Path
+    }
 }
 
 # Helper that will launch wsl.exe, correctly parsing its output encoding, and throwing an error
@@ -687,7 +705,7 @@ function Export-WslDistribution
                 throw "The path '$fullPath' already exists."
             }
 
-            $fullPath = Get-UnresolvedProviderPath $fullPath
+            #$fullPath = Get-UnresolvedProviderPath $fullPath
             if ($PSCmdlet.ShouldProcess("Name: $($_.Name), Path: $fullPath", "Export")) {
                 Invoke-Wsl "--export",$_.Name,$fullPath | Out-Null
             }
@@ -1078,43 +1096,71 @@ function Stop-Wsl
     }
 }
 
-function Add-VersionMember($Name, $Value, $Result) {
-    if ($Value) {
-        $Result | Add-Member -MemberType NoteProperty "${Name}VersionString" -Value $Value
-        $index = $Value.IndexOf("-")
-        if ($index -ge 0) {
-            $Value = $Value.Substring(0, $index)
-        }
+<#
+.SYNOPSIS
+Returns version information about the Windows Subsystem for Linux.
 
-        $version = [System.Version]::Parse($Value)
-        $Result | Add-Member -MemberType NoteProperty "${Name}Version" -Value $version
-    }
-}
+.DESCRIPTION
+Returns the version of the WSL store app, as well as other WSL components such as the Linux kernel
+and WSLg.
 
+If WSL is not installed from the Microsoft store and the inbox version of WSL is used, all the
+versions will be $null, except for the OS version.
+
+This cmdlet wraps the functionality of "wsl.exe --version".
+
+.INPUTS
+None. This cmdlet does not take any input.
+
+.OUTPUTS
+WslVersionInfo
+
+The cmdlet returns an object whose properties represent the versions of WSL components.
+
+.EXAMPLE
+Get-WslVersion
+
+Wsl      : 1.2.5.0
+Kernel   : 5.15.90.1
+WslG     : 1.0.51
+Msrdc    : 1.2.3770
+Direct3D : 1.608.2
+DXCore   : 10.0.25131.1002
+Windows  : 10.0.22621.2215
+
+Gets WSL version information.
+#>
 function Get-WslVersion
 {
     $output = Invoke-Wsl "--version" -IgnoreErrors | ForEach-Object {
+        $value = $_
         $index = $_.LastIndexOf(':')
         if ($index -ge 0) {
-            $_.Substring($index + 1).Trim()
+            $value = $_.Substring($index + 1).Trim()
         }
+
+        $index = $value.IndexOf('-')
+        if ($index -ge 0) {
+            $value = $value.Substring(0, $index)
+        }
+
+        [Version]::Parse($value)
     }
 
+    $result = [WslVersionInfo]::new()
     if ($output) {
-        # Maybe use a switch to select string or version object.
-        $result = [PSCustomObject]@{}
-        Add-VersionMember "Wsl" $output[0] $result
-        Add-VersionMember "Kernel" $output[1] $result
-        Add-VersionMember "WslG" $output[2] $result
-        Add-VersionMember "Msrdc" $output[3] $result
-        Add-VersionMember "Direct3D" $output[4] $result
-        Add-VersionMember "DXCore" $output[5] $result
-        Add-VersionMember "Windows" $output[6] $result
+        # This relies on the order of the items returned, which is very fragile, but unfortunately
+        # the names are localized so there is no reliable way to determine which items is which.
+        $result.Wsl = $output[0]
+        $result.Kernel = $output[1]
+        $result.WslG = $output[2]
+        $result.Msrdc = $output[3]
+        $result.Direct3D = $output[4]
+        $result.DXCore = $output[5]
+        $result.Windows = $output[6]
+
     } else {
-        $result = @{
-            "WslVersionString" = "Inbox"
-            "WslVersion" = [System.Version]::new()
-        }
+        $result.Windows = [Environment]::OSVersion.Version
     }
 
     return $result

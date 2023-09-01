@@ -170,16 +170,22 @@ Describe "WslManagementPS" {
     }
 
     It "Supports WSL_UTF8" {
-        $env:WSL_UTF8 = "1"
-        try {
-            $distros = Get-WslDistribution
-            $distros | Should -HaveCount 3
-            Test-Distro ($distros | Where-Object { $_.Name -eq "wslps_test" }) "wslps_test" 1 "Stopped" -Default
-            Test-Distro ($distros | Where-Object { $_.Name -eq "wslps_raw" }) "wslps_raw" 2 "Stopped"
-            Test-Distro ($distros | Where-Object { $_.Name -eq "wslps_test2" }) "wslps_test2" 2 "Running"
-    
-        } finally {
-            Remove-Item env:WSL_UTF8
+        if ((Get-WslVersion).Wsl -ge ([Version]::new(0, 64)))
+        {
+            $env:WSL_UTF8 = "1"
+            try {
+                $distros = Get-WslDistribution
+                $distros | Should -HaveCount 3
+                Test-Distro ($distros | Where-Object { $_.Name -eq "wslps_test" }) "wslps_test" 1 "Stopped" -Default
+                Test-Distro ($distros | Where-Object { $_.Name -eq "wslps_raw" }) "wslps_raw" 2 "Stopped"
+                Test-Distro ($distros | Where-Object { $_.Name -eq "wslps_test2" }) "wslps_test2" 2 "Running"
+        
+            } finally {
+                Remove-Item env:WSL_UTF8
+            }
+
+        } else {
+            Write-Warning "Skipped WSL_UTF8 test because it's not supported on this version of WSL"
         }
     }
 
@@ -268,6 +274,39 @@ Describe "WslManagementPS" {
 
         # Non-existent
         { Set-WslDistribution "wslps_bogus" -Version 2 } | Should -Throw "There is no distribution with the name 'wslps_bogus'."
+    }
+
+    It "Can return version information" {
+        $version = Get-WslVersion
+        if ($version.Wsl) {
+            $packageVersion = (Get-AppxPackage -Name "MicrosoftCorporationII.WindowsSubsystemforLinux").Version
+            $version.Wsl | Should -Be $packageVersion
+            $kernelVersion = Invoke-WslCommand "uname -r" 2> $null
+            $index = $kernelVersion.IndexOf("-")
+            if ($index -ge 0) {
+                $kernelVersion = $kernelVersion.Substring(0, $index)
+            }
+
+            $kernelVersion = [Version]::Parse($kernelVersion)
+            $version.Kernel | Should -Be $kernelVersion
+            $version.WslG | Should -BeGreaterThan ([Version]::new())
+            $version.Msrdc | Should -BeGreaterThan ([Version]::new())
+            $version.Direct3D | Should -BeGreaterThan ([Version]::new())
+            $version.DXCore | Should -BeGreaterThan ([Version]::new())
+
+        } else {
+            $version.Wsl | Should -BeNullOrEmpty
+            $version.Kernel | Should -BeNullOrEmpty
+            $version.WslG | Should -BeNullOrEmpty
+            $version.Msrdc | Should -BeNullOrEmpty
+            $version.Direct3D | Should -BeNullOrEmpty
+            $version.DXCore | Should -BeNullOrEmpty
+        }
+
+        # Environment.OSVersion always has 0 as the revision so don't compare it.
+        $version.Windows.Major | Should -Be ([Environment]::OSVersion.Version.Major)
+        $version.Windows.Minor | Should -Be ([Environment]::OSVersion.Version.Minor)
+        $version.Windows.Build | Should -Be ([Environment]::OSVersion.Version.Build)
     }
 
     It "Can stop WSL" {
