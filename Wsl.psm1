@@ -37,6 +37,7 @@ class WslDistribution
     [bool]$Default
     [Guid]$Guid
     [string]$BasePath
+    [string]$VhdPath
 }
 
 # Provides version of various WSL components.
@@ -182,6 +183,15 @@ function Get-WslDistributionProperties([WslDistribution]$Distribution)
         $Distribution.BasePath = $key.BasePath
         if ($Distribution.BasePath.StartsWith("\\?\")) {
             $Distribution.BasePath = $Distribution.BasePath.Substring(4)
+        }
+
+        if ($Distribution.Version -eq 2) {
+            $vhdFile = "ext4.vhdx"
+            if ($key.VhdFileName) {
+                $vhdFile = $key.VhdFileName
+            }
+
+            $Distribution.VhdPath = Join-Path $Distribution.BasePath $vhdFile
         }
     }
 }
@@ -705,7 +715,7 @@ function Export-WslDistribution
                 throw "The path '$fullPath' already exists."
             }
 
-            #$fullPath = Get-UnresolvedProviderPath $fullPath
+            $fullPath = Get-UnresolvedProviderPath $fullPath
             if ($PSCmdlet.ShouldProcess("Name: $($_.Name), Path: $fullPath", "Export")) {
                 Invoke-Wsl "--export",$_.Name,$fullPath | Out-Null
             }

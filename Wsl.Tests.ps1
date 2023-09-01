@@ -31,6 +31,12 @@ BeforeAll {
         $Distro.BasePath | Should -Be $BasePath
         $Distro.FileSystemPath | Should -Be "\\wsl.localhost\$Name"
         $Distro.Default | Should -Be $Default
+        if ($Distro.Version -eq 2) {
+            $Distro.VhdPath | Should -Be (Join-Path $BasePath "ext4.vhdx")
+
+        } else {
+            $Distro.VhdPath | Should -BeNullOrEmpty
+        }
     }
 
     function Test-DistroEqual($Expected, $Actual)
@@ -44,6 +50,7 @@ BeforeAll {
         $Actual.BasePath | Should -Be $Expected.BasePath
         $Actual.FileSystemPath | Should -Be $Expected.FileSystemPath
         $Actual.Default | Should -Be $Expected.Default
+        $Actual.VhdPath | Should -Be $Expected.VhdPath
     }
 
     Write-Warning "These tests should be run on a machine with no existing distributions."
