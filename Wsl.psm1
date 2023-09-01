@@ -65,39 +65,61 @@ function Get-UnresolvedProviderPath([string]$Path)
 # if it fails.
 function Invoke-Wsl([string[]]$WslArgs, [Switch]$IgnoreErrors)
 {
-    $hasError = $false
-    if ($PSVersionTable.PSVersion.Major -lt 6) {
-        try {
-            $oldOutputEncoding = [System.Console]::OutputEncoding
-            [System.Console]::OutputEncoding = [System.Text.Encoding]::Unicode
-            $output = &$wslPath @WslArgs
-            if ($LASTEXITCODE -ne 0) {
+    try {
+        if ($IsLinux) {
+            # If running inside WSL, we can't reliably determine the value WSL_UTF8 had in Windows,
+            # so set it explicitly.
+            $originalWslUtf8 = $env:WSL_UTF8
+            $originalWslEnv = $env:WSLENV
+            $env:WSL_UTF8 = "1"
+            $env:WSLENV += ":WSL_UTF8"
+        }
+
+        $encoding = [System.Text.Encoding]::Unicode
+        if ($env:WSL_UTF8 -eq "1") {
+            $encoding = [System.Text.Encoding]::Utf8
+        }
+
+        $hasError = $false
+        if ($PSVersionTable.PSVersion.Major -lt 6 -or $PSVersionTable.PSVersion.Major -ge 7) {
+            try {
+                $oldOutputEncoding = [System.Console]::OutputEncoding
+                [System.Console]::OutputEncoding = $encoding
+                $output = &$wslPath @WslArgs
+                if ($LASTEXITCODE -ne 0) {
+                    $hasError = $true
+                }
+
+            } finally {
+                [System.Console]::OutputEncoding = $oldOutputEncoding
+            }
+
+        } else {
+            # Using Console.OutputEncoding is broken on PowerShell 6, so use an alternative method of
+            # starting wsl.exe.
+            # See: https://github.com/PowerShell/PowerShell/issues/10789
+            $startInfo = New-Object System.Diagnostics.ProcessStartInfo $wslPath
+            $WslArgs | ForEach-Object { $startInfo.ArgumentList.Add($_) }
+            $startInfo.RedirectStandardOutput = $true
+            $startInfo.StandardOutputEncoding = $encoding
+            $process = [System.Diagnostics.Process]::Start($startInfo)
+            $output = @()
+            while ($null -ne ($line = $process.StandardOutput.ReadLine())) {
+                if ($line.Length -gt 0) {
+                    $output += $line
+                }
+            }
+
+            $process.WaitForExit()
+            if ($process.ExitCode -ne 0) {
                 $hasError = $true
             }
-
-        } finally {
-            [System.Console]::OutputEncoding = $oldOutputEncoding
         }
 
-    } else {
-        # Using Console.OutputEncoding is currently broken on PowerShell Core, so use an alternative
-        # method of starting wsl.exe.
-        # See: https://github.com/PowerShell/PowerShell/issues/10789
-        $startInfo = New-Object System.Diagnostics.ProcessStartInfo $wslPath
-        $WslArgs | ForEach-Object { $startInfo.ArgumentList.Add($_) }
-        $startInfo.RedirectStandardOutput = $true
-        $startInfo.StandardOutputEncoding = [System.Text.Encoding]::Unicode
-        $process = [System.Diagnostics.Process]::Start($startInfo)
-        $output = @()
-        while ($null -ne ($line = $process.StandardOutput.ReadLine())) {
-            if ($line.Length -gt 0) {
-                $output += $line
-            }
-        }
-
-        $process.WaitForExit()
-        if ($process.ExitCode -ne 0) {
-            $hasError = $true
+    } finally {
+        if ($IsLinux) {
+            $env:WSL_UTF8 = $originalWslUtf8
+            $env:WSLENV = $originalWslEnv
         }
     }
 

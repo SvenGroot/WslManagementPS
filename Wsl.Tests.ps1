@@ -43,6 +43,7 @@ BeforeAll {
         $Actual.Guid | Should -Be $Expected.Guid
         $Actual.BasePath | Should -Be $Expected.BasePath
         $Actual.FileSystemPath | Should -Be $Expected.FileSystemPath
+        $Actual.Default | Should -Be $Expected.Default
     }
 
     Write-Warning "These tests should be run on a machine with no existing distributions."
@@ -58,6 +59,10 @@ BeforeAll {
     }
 
     New-Item TestDrive:/wsl -ItemType Directory | Out-Null
+    $originalWslUtf8 = $env:WSL_UTF8
+    if (Test-Path env:WSL_UTF8) {
+        Remove-Item env:WSL_UTF8
+    }
 }
 
 AfterAll {
@@ -66,6 +71,8 @@ AfterAll {
     } catch {
         # Don't care about exceptions here.
     }
+
+    $env:WSL_UTF8 = $originalWslUtf8
 }
 
 Describe "WslManagementPS" {
@@ -160,6 +167,20 @@ Describe "WslManagementPS" {
         $distros = Get-WslDistribution -State Stopped -Version 2
         $distros | Should -HaveCount 1
         Test-Distro ($distros | Where-Object { $_.Name -eq "wslps_raw" }) "wslps_raw" 2 "Stopped"
+    }
+
+    It "Supports WSL_UTF8" {
+        $env:WSL_UTF8 = "1"
+        try {
+            $distros = Get-WslDistribution
+            $distros | Should -HaveCount 3
+            Test-Distro ($distros | Where-Object { $_.Name -eq "wslps_test" }) "wslps_test" 1 "Stopped" -Default
+            Test-Distro ($distros | Where-Object { $_.Name -eq "wslps_raw" }) "wslps_raw" 2 "Stopped"
+            Test-Distro ($distros | Where-Object { $_.Name -eq "wslps_test2" }) "wslps_test2" 2 "Running"
+    
+        } finally {
+            Remove-Item env:WSL_UTF8
+        }
     }
 
     It "Can stop distributions" {
