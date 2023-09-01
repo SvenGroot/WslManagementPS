@@ -618,15 +618,16 @@ function Remove-WslDistribution
 
 <#
 .SYNOPSIS
-Exports one or more WSL distributions to a .tar.gz file.
+Exports one or more WSL distributions to a .tar.gz or VHD file.
 
 .DESCRIPTION
 The Export-WslDistribution cmdlet exports each of the specified WSL distributions to a gzipped
-tarball. You can specify distributions by their names, or use the Distribution parameter to pass
-an object returned by Get-WslDistribution.
+tarball or VHD. You can specify distributions by their names, or use the Distribution parameter to
+pass an object returned by Get-WslDistribution.
 
 You can export multiple distributions by specifying a directory as the Destination. In this case,
-this cmdlet will automatically create files using the distribution name with the extension .tar.gz.
+this cmdlet will automatically create files using the distribution name with the extension .tar.gz
+or .vhdx.
 
 This cmdlet wraps the functionality of "wsl.exe --export".
 
@@ -641,6 +642,11 @@ Specifies the destination directory or file name where the exported distribution
 
 If you specify an existing directory as the destination, this cmdlet will append a file name based
 on the distribution name. If you specify a non-existing file name, that name will be used verbatim.
+
+.PARAMETER Vhd
+Export the distribution as a .vhdx file, instead of a .tar.gz file.
+
+This parameter requires at least WSL version 0.58.
 
 .PARAMETER Passthru
 Returns an object that represents the distribution. By default, this cmdlet does not generate any
@@ -664,9 +670,21 @@ Export-WslDistribution Ubuntu D:\backup.tar.gz
 Exports the distribution named "Ubuntu" to a file named D:\backup.tar.gz.
 
 .EXAMPLE
+Export-WslDistribution Ubuntu D:\backup.vhdx -Vhd
+
+Exports the distribution named "Ubuntu" to a file named D:\backup.vhdx which is a VHD, not a gzipped
+tarball.
+
+.EXAMPLE
 Export-WslDistribution Ubuntu* D:\backup
 
 Exports all distributions whose names start with Ubuntu to files in a directory named D:\backup.
+
+.EXAMPLE
+Export-WslDistribution Ubuntu* D:\backup -Vhd
+
+Exports all distributions whose names start with Ubuntu to files in a directory named D:\backup,
+using .vhdx files.
 
 .EXAMPLE
 Get-WslDistribution -Version 2 | Export-WslDistribution -Destination D:\backup -Passthru
@@ -690,6 +708,8 @@ function Export-WslDistribution
         [Parameter(Mandatory = $true, Position = 1)]
         [string]$Destination,
         [Parameter(Mandatory = $false)]
+        [Switch]$Vhd,
+        [Parameter(Mandatory = $false)]
         [Switch]$Passthru
     )
 
@@ -708,7 +728,14 @@ function Export-WslDistribution
         $distros | ForEach-Object {
             $fullPath = $Destination
             if (Test-Path $Destination -PathType Container) {
-                $fullPath = Join-Path $Destination "$($_.Name).tar.gz"
+                if ($Vhd) {
+                    $extension = ".vhdx"
+
+                } else {
+                    $extension = ".tar.gz"
+                }
+
+                $fullPath = Join-Path $Destination "$($_.Name)$extension"
             }
 
             if (Test-Path $fullPath) {
@@ -717,7 +744,12 @@ function Export-WslDistribution
 
             $fullPath = Get-UnresolvedProviderPath $fullPath
             if ($PSCmdlet.ShouldProcess("Name: $($_.Name), Path: $fullPath", "Export")) {
-                Invoke-Wsl "--export",$_.Name,$fullPath | Out-Null
+                $wslArgs = @("--export", $_.Name, $fullPath)
+                if ($Vhd) {
+                    $wslArgs += "--vhd"
+                }
+
+                Invoke-Wsl $wslArgs | Out-Null
             }
 
             if ($Passthru) {
@@ -729,7 +761,7 @@ function Export-WslDistribution
 
 <#
 .SYNOPSIS
-Imports one or more WSL distributions from a .tar.gz file.
+Imports one or more WSL distributions from a .tar.gz or VHD file.
 
 .DESCRIPTION
 The Import-WslDistribution cmdlet imports each of the specified gzipped tarball files to a WSL
@@ -740,12 +772,18 @@ name to the destination path. This allows you to import multiple distributions.
 
 This cmdlet wraps the functionality of "wsl.exe --import".
 
+.PARAMETER InPlace
+Registers the specified file as a WSL distribution in its current location, without copying it. The
+input must be a .vhdx file when importing in place.
+
+This parameter requires at least WSL version 0.58.
+
 .PARAMETER Path
-Specifies the path to a .tar.gz file to import. Wildcards are permitted.
+Specifies the path to a .tar.gz or .vhdx file to import. Wildcards are permitted.
 
 .PARAMETER LiteralPath
-Specifies the path to a .tar.gz file to import. The value of LiteralPath is used exactly as it is
-typed. No characters are interpreted as wildcards.
+Specifies the path to a .tar.gz or .vhdx file to import. The value of LiteralPath is used exactly as
+it is typed. No characters are interpreted as wildcards.
 
 .PARAMETER Destination
 Specifies the destination directory or file name where the imported distribution will be stored. The
@@ -771,6 +809,11 @@ Indicates that the destination path should be used as is, without appending the 
 to it. By default, the distribution name is appended to the path.
 
 If RawDestination is specified, you cannot import multiple distributions with one command.
+
+.PARAMETER Vhd
+Indicates that the input file is a .vhdx file that will be copied to the destination.
+
+This parameter requires at least WSL version 0.58.
 
 .PARAMETER Passthru
 Returns an object that represents the distribution. By default, this cmdlet does not generate any
@@ -804,6 +847,18 @@ Imports all .tar.gz files from D:\backup to distributions with names based on th
 in subdirectories of D:\wsl.
 
 .EXAMPLE
+Import-WslDistribution D:\backup\*.vhdx D:\wsl -Vhd
+
+Imports all .vhdx files from D:\backup to distributions with names based on the file names, stored
+in subdirectories of D:\wsl. The Vhd parameter is required to indicate the input files are VHDs.
+
+.EXAMPLE
+Import-WslDistribution -InPlace D:\wsl\Ubuntu.vhdx
+
+Imports the file named D:\wsl\Ubuntu.vhdx as a distribution named "Ubuntu", using the file at its
+present location.
+
+.EXAMPLE
 Get-Item D:\backup\*.tar.gz -Exclude Ubuntu* | Import-WslDistribution -Destination D:\wsl -Version 2 -Passthru
 Name           State Version Default
 ----           ----- ------- -------
@@ -817,29 +872,40 @@ function Import-WslDistribution
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
     param(
+        [Parameter(Mandatory = $true, ParameterSetName = "PathInPlace")]
+        [Parameter(Mandatory = $true, ParameterSetName = "LiteralPathInPlace")]
+        [Switch]$InPlace,
         [Parameter(Mandatory = $true, Position = 0, ParameterSetName = "Path", ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = "PathInPlace", ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [SupportsWildcards()]
         [string[]] $Path,
         [Parameter(Mandatory = $true, ParameterSetName = "LiteralPath", ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Mandatory = $true, ParameterSetName = "LiteralPathInPlace", ValueFromPipelineByPropertyName = $true)]
         [Alias("PSPath")]
         [ValidateNotNullOrEmpty()]
         [string[]] $LiteralPath,
-        [Parameter(Mandatory = $true, Position = 1)]
+        [Parameter(Mandatory = $true, Position = 1, ParameterSetName = "Path")]
+        [Parameter(Mandatory = $true, Position = 1, ParameterSetName = "LiteralPath")]
         [ValidateNotNullOrEmpty()]
         [string]$Destination,
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [string]$Name,
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false, Position = 3, ParameterSetName = "Path")]
+        [Parameter(Mandatory = $false, Position = 3, ParameterSetName = "LiteralPath")]
         [int]$Version = 0,
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false, ParameterSetName = "Path")]
+        [Parameter(Mandatory = $false, ParameterSetName = "LiteralPath")]
         [Switch]$RawDestination,
+        [Parameter(Mandatory = $false, ParameterSetName = "Path")]
+        [Parameter(Mandatory = $false, ParameterSetName = "LiteralPath")]
+        [Switch]$Vhd,
         [Parameter(Mandatory = $false)]
         [Switch]$Passthru
     )
 
     process {
-        if ($PSCmdlet.ParameterSetName -eq "Path") {
+        if ($Path) {
             $files = Get-Item $Path
         } else {
             $files = Get-Item -LiteralPath $LiteralPath
@@ -855,19 +921,30 @@ function Import-WslDistribution
                 }
             }
 
-            $distributionDestination = $Destination
-            if (-not $RawDestination) {
-                $distributionDestination = Join-Path $distributionDestination $distributionName
-            }
-
-            $distributionDestination = Get-UnresolvedProviderPath $distributionDestination
-            if ($PSCmdlet.ShouldProcess("Path: $($_.FullName), Destination: $distributionDestination, Name: $distributionName", "Import")) {
-                $wslArgs = @("--import", $distributionName, $distributionDestination, $_.FullName)
-                if ($Version -ne 0) {
-                    $wslArgs += @("--version", $Version)
+            if ($InPlace) {
+                if ($PSCmdlet.ShouldProcess("Path: $($_.FullName) (in place), Name: $distributionName", "Import")) {
+                    Invoke-Wsl @("--import-in-place", $distributionName, $_.FullName) | Out-Null
+                }
+    
+            } else {
+                $distributionDestination = $Destination
+                if (-not $RawDestination) {
+                    $distributionDestination = Join-Path $distributionDestination $distributionName
                 }
 
-                Invoke-Wsl $wslArgs | Out-Null
+                $distributionDestination = Get-UnresolvedProviderPath $distributionDestination
+                if ($PSCmdlet.ShouldProcess("Path: $($_.FullName), Destination: $distributionDestination, Name: $distributionName", "Import")) {
+                    $wslArgs = @("--import", $distributionName, $distributionDestination, $_.FullName)
+                    if ($Version -ne 0) {
+                        $wslArgs += @("--version", $Version)
+                    }
+
+                    if ($Vhd) {
+                        $wslArgs += "--vhd"
+                    }
+
+                    Invoke-Wsl $wslArgs | Out-Null
+                }
             }
 
             if ($Passthru) {

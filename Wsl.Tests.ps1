@@ -17,7 +17,7 @@ param(
 BeforeAll {
     Import-Module "$PSScriptRoot/Wsl.psd1" -Force
 
-    function Test-Distro($Distro, [string]$Name, [string]$Version, [string]$State, [string]$BasePath, [Switch]$Default)
+    function Test-Distro($Distro, [string]$Name, [string]$Version, [string]$State, [string]$BasePath, [string]$VhdFile = "ext4.vhdx", [Switch]$Default)
     {
         $Distro | Should -Not -BeNullOrEmpty
         $Distro.Name | Should -Be $Name
@@ -32,7 +32,7 @@ BeforeAll {
         $Distro.FileSystemPath | Should -Be "\\wsl.localhost\$Name"
         $Distro.Default | Should -Be $Default
         if ($Distro.Version -eq 2) {
-            $Distro.VhdPath | Should -Be (Join-Path $BasePath "ext4.vhdx")
+            $Distro.VhdPath | Should -Be (Join-Path $BasePath $VhdFile)
 
         } else {
             $Distro.VhdPath | Should -BeNullOrEmpty
@@ -149,6 +149,26 @@ Describe "WslManagementPS" {
         Test-Distro $distros[1] "wslps_test2" 2 "Stopped"
     }
 
+    It "Can import and export VHDs" {
+        if ((Get-WslVersion).Wsl -lt ([Version]::new(0, 58))) {
+            Write-Warning "Skipped VHD import/export test because it's not supported on this version of WSL"
+            return
+        }
+
+        try {
+            Stop-Wsl # Otherwise export may fail due to files in use.
+            Export-WslDistribution "wslps_test2" "TestDrive:/exported" -Vhd
+            "TestDrive:/exported/wslps_test2.vhdx" | Should -Exist
+            $distro = Import-WslDistribution "TestDrive:/exported/wslps_test2.vhdx" "TestDrive:/wsl" "wslps_vhd1" -Vhd -Passthru
+            Test-Distro $distro "wslps_vhd1" 2 "Stopped"
+            $distro = Import-WslDistribution -InPlace "TestDrive:/exported/wslps_test2.vhdx" "wslps_vhd2" -Passthru
+            Test-Distro $distro "wslps_vhd2" 2 "Stopped" "$TestDrive\exported" "wslps_test2.vhdx"
+
+        } finally {
+            try { Remove-WslDistribution "wslps_vhd*" } catch {}
+        }
+    }
+
     It "Can list distributions" {
         # Invoke a command to start one of the distros.
         Invoke-WslCommand "echo foo" "wslps_test2" *> $null
@@ -177,22 +197,21 @@ Describe "WslManagementPS" {
     }
 
     It "Supports WSL_UTF8" {
-        if ((Get-WslVersion).Wsl -ge ([Version]::new(0, 64)))
-        {
-            $env:WSL_UTF8 = "1"
-            try {
-                $distros = Get-WslDistribution
-                $distros | Should -HaveCount 3
-                Test-Distro ($distros | Where-Object { $_.Name -eq "wslps_test" }) "wslps_test" 1 "Stopped" -Default
-                Test-Distro ($distros | Where-Object { $_.Name -eq "wslps_raw" }) "wslps_raw" 2 "Stopped"
-                Test-Distro ($distros | Where-Object { $_.Name -eq "wslps_test2" }) "wslps_test2" 2 "Running"
-        
-            } finally {
-                Remove-Item env:WSL_UTF8
-            }
-
-        } else {
+        if ((Get-WslVersion).Wsl -lt ([Version]::new(0, 64))) {
             Write-Warning "Skipped WSL_UTF8 test because it's not supported on this version of WSL"
+            return
+        }
+        
+        $env:WSL_UTF8 = "1"
+        try {
+            $distros = Get-WslDistribution
+            $distros | Should -HaveCount 3
+            Test-Distro ($distros | Where-Object { $_.Name -eq "wslps_test" }) "wslps_test" 1 "Stopped" -Default
+            Test-Distro ($distros | Where-Object { $_.Name -eq "wslps_raw" }) "wslps_raw" 2 "Stopped"
+            Test-Distro ($distros | Where-Object { $_.Name -eq "wslps_test2" }) "wslps_test2" 2 "Running"
+    
+        } finally {
+            Remove-Item env:WSL_UTF8
         }
     }
 
