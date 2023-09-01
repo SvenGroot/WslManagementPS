@@ -14,8 +14,12 @@ param(
     [Parameter(Mandatory=$false)][string]$TestDistroPath
 )
 
-BeforeAll {
+BeforeDiscovery {
     Import-Module "$PSScriptRoot/Wsl.psd1" -Force
+    $wslVersion = (Get-WslVersion).Wsl
+}
+
+BeforeAll {
 
     function Test-Distro($Distro, [string]$Name, [string]$Version, [string]$State, [string]$BasePath, [string]$VhdFile = "ext4.vhdx", [Switch]$Default)
     {
@@ -149,12 +153,7 @@ Describe "WslManagementPS" {
         Test-Distro $distros[1] "wslps_test2" 2 "Stopped"
     }
 
-    It "Can import and export VHDs" {
-        if ((Get-WslVersion).Wsl -lt ([Version]::new(0, 58))) {
-            Write-Warning "Skipped VHD import/export test because it's not supported on this version of WSL"
-            return
-        }
-
+    It "Can import and export VHDs" -Skip:($wslVersion -lt ([Version]::new(0, 58))) {
         try {
             Stop-Wsl # Otherwise export may fail due to files in use.
             Export-WslDistribution "wslps_test2" "TestDrive:/exported" -Vhd
@@ -196,12 +195,7 @@ Describe "WslManagementPS" {
         Test-Distro ($distros | Where-Object { $_.Name -eq "wslps_raw" }) "wslps_raw" 2 "Stopped"
     }
 
-    It "Supports WSL_UTF8" {
-        if ((Get-WslVersion).Wsl -lt ([Version]::new(0, 64))) {
-            Write-Warning "Skipped WSL_UTF8 test because it's not supported on this version of WSL"
-            return
-        }
-        
+    It "Supports WSL_UTF8" -Skip:($wslVersion -lt ([Version]::new(0, 64))) {
         $env:WSL_UTF8 = "1"
         try {
             $distros = Get-WslDistribution
