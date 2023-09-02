@@ -270,6 +270,19 @@ Describe "WslManagementPS" {
         $output | Should -Contain "\\$uncPrefix\wslps_raw\root"
         $output | Should -Contain "\\$uncPrefix\wslps_test2\root"
 
+        # Set starting directory
+        Invoke-WslCommand "pwd" -WorkingDirectory "~" 2> $null | Should -Be "/root"
+        if ((Get-WslVersion).Wsl -gt [Version]::new(0, 56, 1)) {
+            Invoke-WslCommand "mkdir ~/foo" 2> $null
+            Invoke-WslCommand "pwd" -WorkingDirectory "~/foo" 2> $null | Should -Be "/root/foo"
+        }
+
+        Invoke-WslCommand "pwd" -WorkingDirectory "/etc" 2> $null | Should -Be "/etc"
+        Invoke-WslCommand "pwd" -WorkingDirectory "C:\Windows" 2> $null | Should -Be "/mnt/c/windows"
+        Invoke-WslCommand "pwd" -WorkingDirectory "C:\" 2> $null | Should -Be "/mnt/c"
+        $testPath = Invoke-WslCommand "wslpath '$TestDrive\wsl'" 2> $null
+        Invoke-WslCommand "pwd" -WorkingDirectory "TestDrive:/wsl" 2> $null | Should -Be $testPath
+
         # Non-existent
         { Invoke-WslCommand "whoami" "wslps_bogus" } | Should -Throw "There is no distribution with the name 'wslps_bogus'."
     }

@@ -982,6 +982,11 @@ By default, the command is executed in the default distribution.
 Specifies the name of a user in the distribution to run the command as. By default, the
 distribution's default user is used.
 
+.PARAMETER WorkingDirectory
+Specifies the working directory to use for the command. Use "~" for the Linux user's home path. If
+the path starts with a "/" character, it will be interpreted as an absolute Linux path. Otherwise,
+the value must be a Windows path.
+
 .INPUTS
 WslDistribution, System.String
 
@@ -1023,7 +1028,10 @@ function Invoke-WslCommand
         [WslDistribution[]]$Distribution,
         [Parameter(Mandatory = $false, Position = 2)]
         [ValidateNotNullOrEmpty()]
-        [string]$User
+        [string]$User,
+        [Parameter(Mandatory = $false, Position = 3)]
+        [ValidateNotNullOrEmpty()]
+        [string]$WorkingDirectory
     )
 
     process {
@@ -1051,10 +1059,18 @@ function Invoke-WslCommand
                 $wslArgs += @("--user", $User)
             }
 
+            if ($WorkingDirectory) {
+                if (-not $WorkingDirectory.StartsWith("~") -and -not $WorkingDirectory.StartsWith("/")) {
+                    $WorkingDirectory = Get-UnresolvedProviderPath $WorkingDirectory
+                }
+
+                $wslArgs += @("--cd", $WorkingDirectory)
+            }
+
             # Invoke /bin/sh so the whole command can be passed as a single argument.
             $wslArgs += @("/bin/sh", "-c", $Command)
 
-            if ($PSCmdlet.ShouldProcess($_.Name, "Invoke Command")) {
+            if ($PSCmdlet.ShouldProcess($_.Name, "Invoke Command; args: $wslArgs")) {
                 &$wslPath $wslArgs
                 if ($LASTEXITCODE -ne 0) {
                     # Note: this could be the exit code of wsl.exe, or of the launched command.
@@ -1089,6 +1105,11 @@ By default, the command is executed in the default distribution.
 .PARAMETER User
 Specifies the name of a user in the distribution to enter as. By default, the
 distribution's default user is used.
+
+.PARAMETER WorkingDirectory
+Specifies the working directory to use for the session. Use "~" for the Linux user's home path. If
+the path starts with a "/" character, it will be interpreted as an absolute Linux path. Otherwise,
+the value must be a Windows path.
 
 .INPUTS
 WslDistribution, System.String
@@ -1125,7 +1146,10 @@ function Enter-WslDistribution
         [WslDistribution]$Distribution,
         [Parameter(Mandatory = $false, Position = 1)]
         [ValidateNotNullOrEmpty()]
-        [string]$User
+        [string]$User,
+        [Parameter(Mandatory = $false, Position = 3)]
+        [ValidateNotNullOrEmpty()]
+        [string]$WorkingDirectory
     )
 
     process {
@@ -1142,12 +1166,20 @@ function Enter-WslDistribution
             $wslArgs = @("--user", $User)
         }
 
+        if ($WorkingDirectory) {
+            if (-not $WorkingDirectory.StartsWith("~") -and -not $WorkingDirectory.StartsWith("/")) {
+                $WorkingDirectory = Get-UnresolvedProviderPath $WorkingDirectory
+            }
+
+            $wslArgs += @("--cd", $WorkingDirectory)
+        }
+
         if ($PSCmdlet.ShouldProcess($Name, "Enter WSL")) {
             &$wslPath $wslArgs
             if ($LASTEXITCODE -ne 0) {
                 # Note: this could be the exit code of wsl.exe, or of the shell.
                 throw "Wsl.exe returned exit code $LASTEXITCODE"
-            }    
+            }
         }
     }
 }
