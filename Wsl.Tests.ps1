@@ -283,8 +283,16 @@ Describe "WslManagementPS" {
         $testPath = Invoke-WslCommand "wslpath '$TestDrive\wsl'" 2> $null
         Invoke-WslCommand "pwd" -WorkingDirectory "TestDrive:/wsl" 2> $null | Should -Be $testPath
 
-        # Raw comand
+        # Raw command
         Invoke-WslCommand -RawCommand -- echo foo`; whoami | Should -Be "foo","root"
+
+        # Shell type (only tests if the argument is accepted; testing it if had any effect is not
+        # trivial).
+        if ((Get-WslVersion).Wsl -gt [Version]::new(0, 61, 4)) {
+            Invoke-WslCommand "echo foo" -ShellType none 2> $null | Should -Be "foo"
+            Invoke-WslCommand "echo foo" -ShellType login 2> $null | Should -Be "foo"
+            Invoke-WslCommand -ShellType Standard -RawCommand -- echo foo 2> $null | Should -Be "foo"
+        }
 
         # Non-existent
         { Invoke-WslCommand "whoami" "wslps_bogus" } | Should -Throw "There is no distribution with the name 'wslps_bogus'."

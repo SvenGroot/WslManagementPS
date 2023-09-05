@@ -996,6 +996,13 @@ Specifies the working directory to use for the command. Use "~" for the Linux us
 the path starts with a "/" character, it will be interpreted as an absolute Linux path. Otherwise,
 the value must be a Windows path.
 
+.PARAMETER ShellType
+Specifies the shell type to use for the command, either "Standard", "Login", or "None". Note that if
+you are not using the RawCommand switch, the command is still executed using /bin/sh on top of the
+selected shell type.
+
+This parameter requires at least WSL version 0.64.1.
+
 .PARAMETER Remaining
 Collects the remaining arguments for the RawCommand switch.
 
@@ -1062,12 +1069,12 @@ function Invoke-WslCommand
         [Parameter(Mandatory = $false, ParameterSetName = "DistributionNameRaw")]
         [ValidateNotNullOrEmpty()]
         [string]$User,
-        [Parameter(Mandatory = $false, Position = 3, ParameterSetName = "Distribution")]
-        [Parameter(Mandatory = $false, Position = 3, ParameterSetName = "DistributionName")]
-        [Parameter(Mandatory = $false, ParameterSetName = "DistributionRaw")]
-        [Parameter(Mandatory = $false, ParameterSetName = "DistributionNameRaw")]
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [string]$WorkingDirectory,
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("Standard", "Login", "None")]
+        [string]$ShellType,
         [Parameter(Mandatory = $true, ValueFromRemainingArguments = $true, ParameterSetName = "DistributionRaw")]
         [Parameter(Mandatory = $true, ValueFromRemainingArguments = $true, ParameterSetName = "DistributionNameRaw")]
         [ValidateNotNullOrEmpty()]
@@ -1106,6 +1113,10 @@ function Invoke-WslCommand
                 }
 
                 $wslArgs += @("--cd", $WorkingDirectory)
+            }
+
+            if ($ShellType) {
+                $wslArgs += @("--shell-type", $ShellType.ToLowerInvariant())
             }
 
             if ($RawCommand) {
@@ -1158,6 +1169,11 @@ Specifies the working directory to use for the session. Use "~" for the Linux us
 the path starts with a "/" character, it will be interpreted as an absolute Linux path. Otherwise,
 the value must be a Windows path.
 
+.PARAMETER ShellType
+Specifies the shell type to use for the command, either "Standard" or "Login".
+
+This parameter requires at least WSL version 0.64.1.
+
 .INPUTS
 WslDistribution, System.String
 
@@ -1194,9 +1210,12 @@ function Enter-WslDistribution
         [Parameter(Mandatory = $false, Position = 1)]
         [ValidateNotNullOrEmpty()]
         [string]$User,
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
-        [string]$WorkingDirectory
+        [string]$WorkingDirectory,
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("Standard", "Login")]
+        [string]$ShellType
     )
 
     process {
@@ -1221,7 +1240,11 @@ function Enter-WslDistribution
             $wslArgs += @("--cd", $WorkingDirectory)
         }
 
-        if ($PSCmdlet.ShouldProcess($Name, "Enter WSL")) {
+        if ($ShellType) {
+            $wslArgs += @("--shell-type", $ShellType.ToLowerInvariant())
+        }
+
+        if ($PSCmdlet.ShouldProcess($Name, "Enter WSL; args: $wslArgs")) {
             &$wslPath $wslArgs
             if ($LASTEXITCODE -ne 0) {
                 # Note: this could be the exit code of wsl.exe, or of the shell.
