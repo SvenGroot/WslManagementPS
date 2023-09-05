@@ -58,14 +58,17 @@ if ($PSVersionTable.PSVersion.Major -lt 6) {
 
 if ($IsWindows) {
     $wslPath = "$env:windir\system32\wsl.exe"
+    $wslgPath = "$env:windir\system32\wslg.exe"
     if (-not [System.Environment]::Is64BitProcess) {
         # Allow launching WSL from 32 bit powershell
         $wslPath = "$env:windir\sysnative\wsl.exe"
+        $wslgPath = "$env:windir\sysnative\wslg.exe"
     }
 
 } else {
     # If running inside WSL, rely on wsl.exe being in the path.
     $wslPath = "wsl.exe"
+    $wslgPath = "wslg.exe"
 }
 
 function Get-UnresolvedProviderPath([string]$Path)
@@ -1008,6 +1011,12 @@ Specifies that the command should be executed in the system distribution.
 
 This parameter requires at least WSL version 0.47.1.
 
+.PARAMETER Graphical
+Run the command using WSLg. Using this option prevents blocking the terminal while running GUI
+applications.
+
+This parameter requires at least WSL version 0.47.1.
+
 .PARAMETER Remaining
 Collects the remaining arguments for the RawCommand switch.
 
@@ -1082,6 +1091,8 @@ function Invoke-WslCommand
         [string]$ShellType,
         [Parameter(Mandatory = $false)]
         [Switch]$System,
+        [Parameter(Mandatory = $false)]
+        [Switch]$Graphical,
         [Parameter(Mandatory = $true, ValueFromRemainingArguments = $true, ParameterSetName = "DistributionRaw")]
         [Parameter(Mandatory = $true, ValueFromRemainingArguments = $true, ParameterSetName = "DistributionNameRaw")]
         [ValidateNotNullOrEmpty()]
@@ -1140,7 +1151,12 @@ function Invoke-WslCommand
             }
 
             if ($PSCmdlet.ShouldProcess($_.Name, "Invoke Command; args: $wslArgs")) {
-                &$wslPath $wslArgs
+                if ($Graphical) {
+                    &$wslgPath $wslArgs
+
+                } else {
+                    &$wslPath $wslArgs
+                }
                 if ($LASTEXITCODE -ne 0) {
                     # Note: this could be the exit code of wsl.exe, or of the launched command.
                     throw "Wsl.exe returned exit code $LASTEXITCODE"
