@@ -1003,6 +1003,11 @@ selected shell type.
 
 This parameter requires at least WSL version 0.64.1.
 
+.PARAMETER System
+Specifies that the command should be executed in the system distribution.
+
+This parameter requires at least WSL version 0.47.1.
+
 .PARAMETER Remaining
 Collects the remaining arguments for the RawCommand switch.
 
@@ -1075,6 +1080,8 @@ function Invoke-WslCommand
         [Parameter(Mandatory = $false)]
         [ValidateSet("Standard", "Login", "None")]
         [string]$ShellType,
+        [Parameter(Mandatory = $false)]
+        [Switch]$System,
         [Parameter(Mandatory = $true, ValueFromRemainingArguments = $true, ParameterSetName = "DistributionRaw")]
         [Parameter(Mandatory = $true, ValueFromRemainingArguments = $true, ParameterSetName = "DistributionNameRaw")]
         [ValidateNotNullOrEmpty()]
@@ -1103,6 +1110,10 @@ function Invoke-WslCommand
 
         $distros | ForEach-Object {
             $wslArgs = @("--distribution", $_.Name)
+            if ($System) {
+                $wslArgs += "--system"
+            }
+
             if ($User) {
                 $wslArgs += @("--user", $User)
             }
@@ -1174,6 +1185,11 @@ Specifies the shell type to use for the command, either "Standard" or "Login".
 
 This parameter requires at least WSL version 0.64.1.
 
+.PARAMETER System
+Specifies that the command should be executed in the system distribution.
+
+This parameter requires at least WSL version 0.47.1.
+
 .INPUTS
 WslDistribution, System.String
 
@@ -1215,7 +1231,9 @@ function Enter-WslDistribution
         [string]$WorkingDirectory,
         [Parameter(Mandatory = $false)]
         [ValidateSet("Standard", "Login")]
-        [string]$ShellType
+        [string]$ShellType,
+        [Parameter(Mandatory = $false)]
+        [Switch]$System
     )
 
     process {
@@ -1226,6 +1244,10 @@ function Enter-WslDistribution
         $wslArgs = @()
         if ($Name) {
             $wslArgs = @("--distribution", $Name)
+        }
+
+        if ($System) {
+            $wslArgs += "--system"
         }
 
         if ($User) {

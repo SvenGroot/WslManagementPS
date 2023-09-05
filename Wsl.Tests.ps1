@@ -294,6 +294,12 @@ Describe "WslManagementPS" {
             Invoke-WslCommand -ShellType Standard -RawCommand -- echo foo 2> $null | Should -Be "foo"
         }
 
+        # System distribution
+        if ((Get-WslVersion).Wsl -gt [Version]::new(0, 47, 1)) {
+            Invoke-WslCommand "whoami" "wslps_test2" -System 2> $null | Should -Be "wslg"
+            Invoke-WslCommand -DistributionName "wslps_test2" -System -RawCommand whoami 2> $null | Should -Be "wslg"
+        }
+
         # Non-existent
         { Invoke-WslCommand "whoami" "wslps_bogus" } | Should -Throw "There is no distribution with the name 'wslps_bogus'."
     }
