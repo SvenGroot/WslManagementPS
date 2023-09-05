@@ -965,10 +965,19 @@ then exits.
 This cmdlet will raise an error if executing wsl.exe failed (e.g. there is no distribution with
 the specified name) or if the command itself failed.
 
+The command to execute can be specified in two ways. The default is using the Command argument,
+which provides it as a single string that will be passed to /bin/sh to execute. Alternatively, you
+can use the RawCommand argument to use all remaining arguments which do not match an argument to
+this cmdlet as the command. You can use the -- separator to pass everything after to the WSL command.
+See the examples for an example of this usage.
+
 This cmdlet wraps the functionality of "wsl.exe <command>".
 
 .PARAMETER Command
 Specifies the command to run.
+
+.PARAMETER RawCommand
+Uses all remaining arguments to this cmdlet as the command to run.
 
 .PARAMETER DistributionName
 Specifies the distribution names of distributions to run the command in. Wildcards are permitted.
@@ -986,6 +995,9 @@ distribution's default user is used.
 Specifies the working directory to use for the command. Use "~" for the Linux user's home path. If
 the path starts with a "/" character, it will be interpreted as an absolute Linux path. Otherwise,
 the value must be a Windows path.
+
+.PARAMETER Remaining
+Collects the remaining arguments for the RawCommand switch.
 
 .INPUTS
 WslDistribution, System.String
@@ -1012,30 +1024,61 @@ Runs a command in all distributions whose names start with Ubuntu, as the "root"
 Get-WslDistribution -Version 2 | Invoke-WslCommand 'echo $(whoami) in $WSL_DISTRO_NAME'
 
 Runs a command in all WSL2 distributions.
+
+.EXAMPLE
+Invoke-WslCommand -RawCommand echo Hello, $`(whoami`)
+
+Uses the remaining arguments as the command. Characters that would be interpreted by PowerShell need
+to be escaped.
+
+.EXAMPLE
+Invoke-WslCommand -RawCommand -- ls -u
+
+Uses the remaining arguments as the command. The -- separator makes sure the -u token is part of the
+command, and not interpreted by PowerShell as an alias for the User argument.
 #>
 function Invoke-WslCommand
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
     param(
-        [Parameter(Mandatory = $true, Position = 0)]
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = "Distribution")]
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = "DistributionName")]
         [ValidateNotNullOrEmpty()]
         [string]$Command,
+        [Parameter(Mandatory = $true, ParameterSetName = "DistributionNameRaw")]
+        [Parameter(Mandatory = $true, ParameterSetName = "DistributionRaw")]
+        [Switch]$RawCommand,
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ParameterSetName = "DistributionName", Position = 1)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, ParameterSetName = "DistributionNameRaw")]
         [ValidateNotNullOrEmpty()]
         [SupportsWildCards()]
         [string[]]$DistributionName,
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = "Distribution")]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = "DistributionRaw")]
         [WslDistribution[]]$Distribution,
-        [Parameter(Mandatory = $false, Position = 2)]
+        [Parameter(Mandatory = $false, Position = 2, ParameterSetName = "Distribution")]
+        [Parameter(Mandatory = $false, Position = 2, ParameterSetName = "DistributionName")]
+        [Parameter(Mandatory = $false, ParameterSetName = "DistributionRaw")]
+        [Parameter(Mandatory = $false, ParameterSetName = "DistributionNameRaw")]
         [ValidateNotNullOrEmpty()]
         [string]$User,
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, Position = 3, ParameterSetName = "Distribution")]
+        [Parameter(Mandatory = $false, Position = 3, ParameterSetName = "DistributionName")]
+        [Parameter(Mandatory = $false, ParameterSetName = "DistributionRaw")]
+        [Parameter(Mandatory = $false, ParameterSetName = "DistributionNameRaw")]
         [ValidateNotNullOrEmpty()]
-        [string]$WorkingDirectory
+        [string]$WorkingDirectory,
+        [Parameter(Mandatory = $true, ValueFromRemainingArguments = $true, ParameterSetName = "DistributionRaw")]
+        [Parameter(Mandatory = $true, ValueFromRemainingArguments = $true, ParameterSetName = "DistributionNameRaw")]
+        [ValidateNotNullOrEmpty()]
+        [string[]]$Remaining
     )
 
     process {
-        if ($PSCmdlet.ParameterSetName -eq "DistributionName") {
+        if ($Distribution) {
+            $distros = $Distribution
+
+        } else {
             if ($DistributionName) {
                 $distros = Get-WslDistribution $DistributionName
                 if (-not $distros) {
@@ -1049,8 +1092,6 @@ function Invoke-WslCommand
                 }
             }
 
-        } else {
-            $distros = $Distribution
         }
 
         $distros | ForEach-Object {
@@ -1067,8 +1108,14 @@ function Invoke-WslCommand
                 $wslArgs += @("--cd", $WorkingDirectory)
             }
 
-            # Invoke /bin/sh so the whole command can be passed as a single argument.
-            $wslArgs += @("/bin/sh", "-c", $Command)
+            if ($RawCommand) {
+                $wslArgs += "--"
+                $wslArgs += $Remaining
+
+            } else {
+                # Invoke /bin/sh so the whole command can be passed as a single argument.
+                $wslArgs += @("/bin/sh", "-c", $Command)
+            }
 
             if ($PSCmdlet.ShouldProcess($_.Name, "Invoke Command; args: $wslArgs")) {
                 &$wslPath $wslArgs

@@ -283,6 +283,9 @@ Describe "WslManagementPS" {
         $testPath = Invoke-WslCommand "wslpath '$TestDrive\wsl'" 2> $null
         Invoke-WslCommand "pwd" -WorkingDirectory "TestDrive:/wsl" 2> $null | Should -Be $testPath
 
+        # Raw comand
+        Invoke-WslCommand -RawCommand -- echo foo`; whoami | Should -Be "foo","root"
+
         # Non-existent
         { Invoke-WslCommand "whoami" "wslps_bogus" } | Should -Throw "There is no distribution with the name 'wslps_bogus'."
     }
