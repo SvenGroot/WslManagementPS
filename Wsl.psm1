@@ -89,17 +89,17 @@ function Get-UnresolvedProviderPath([string]$Path)
 function Invoke-Wsl([string[]]$WslArgs, [Switch]$IgnoreErrors)
 {
     try {
+        $encoding = [System.Text.Encoding]::Unicode
         if ($IsLinux) {
-            # If running inside WSL, we can't reliably determine the value WSL_UTF8 had in Windows,
-            # so set it explicitly.
+            # If running inside WSL, we can't easily determine the value WSL_UTF8 had in Windows,
+            # so set it explicitly. It is set to zero to ensure compatibility with older WSL
+            # versions that don't support this variable.
             $originalWslUtf8 = $env:WSL_UTF8
             $originalWslEnv = $env:WSLENV
-            $env:WSL_UTF8 = "1"
+            $env:WSL_UTF8 = "0"
             $env:WSLENV += ":WSL_UTF8"
-        }
 
-        $encoding = [System.Text.Encoding]::Unicode
-        if ($env:WSL_UTF8 -eq "1") {
+        } elseif ($env:WSL_UTF8 -eq "1") {
             $encoding = [System.Text.Encoding]::Utf8
         }
 
