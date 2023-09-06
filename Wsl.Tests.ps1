@@ -103,8 +103,8 @@ Describe "WslManagementPS" {
         { Remove-WslDistribution "wslps_bogus" } | Should -Throw "There is no distribution with the name 'wslps_bogus'."
     }
 
+    # A bunch of the below tests depend on this one, so if this one fails, expect more to fail.
     It "Can import and export distributions" {
-        # TODO: Default version
         $distro = Import-WslDistribution $testDistroFile -Destination "TestDrive:/wsl" -Version 1 -Passthru
         Test-Distro $distro "wslps_test" 1 "Stopped" -Default
         Test-DistroEqual $distro (Get-WslDistribution "wslps_test")
@@ -151,6 +151,12 @@ Describe "WslManagementPS" {
         $distros | Should -HaveCount 2
         Test-Distro $distros[0] "wslps_raw" 2 "Stopped"
         Test-Distro $distros[1] "wslps_test2" 2 "Stopped"
+
+        # Use the default version
+        $distro = Import-WslDistribution $testDistroFile -Name wslps_default -Destination "TestDrive:/wsl" -Passthru
+        $version = Get-WslVersion
+        Test-Distro $distro "wslps_default" $version.DefaultDistroVersion "Stopped"
+        { Remove-WslDistribution "wslps_default" } | Should -Not -Throw
     }
 
     It "Can import and export VHDs" -Skip:($wslVersion -lt ([Version]::new(0, 58))) {
@@ -357,6 +363,8 @@ Describe "WslManagementPS" {
         $version.Windows.Major | Should -Be ([Environment]::OSVersion.Version.Major)
         $version.Windows.Minor | Should -Be ([Environment]::OSVersion.Version.Minor)
         $version.Windows.Build | Should -Be ([Environment]::OSVersion.Version.Build)
+
+        $version.DefaultDistroVersion -eq 1 -or $version.DefaultDistroVersion -eq 2 | Should -BeTrue
     }
 
     It "Can stop WSL" {
