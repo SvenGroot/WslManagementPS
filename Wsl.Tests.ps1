@@ -20,8 +20,7 @@ BeforeDiscovery {
 }
 
 BeforeAll {
-
-    function Test-Distro($Distro, [string]$Name, [string]$Version, [string]$State, [string]$BasePath, [string]$VhdFile = "ext4.vhdx", [Switch]$Default)
+   function Test-Distro($Distro, [string]$Name, [string]$Version, [string]$State, [string]$BasePath, [string]$VhdFile = "ext4.vhdx", [Switch]$Default)
     {
         $Distro | Should -Not -BeNullOrEmpty
         $Distro.Name | Should -Be $Name
@@ -59,12 +58,19 @@ BeforeAll {
 
     Write-Warning "These tests should be run on a machine with no existing distributions."
 
-    # TODO: Arm64 support
-    $testDistroUrl = "https://dl-cdn.alpinelinux.org/alpine/v3.18/releases/x86_64/alpine-minirootfs-3.18.3-x86_64.tar.gz"
-    $testDistroFile = "TestDrive:/wslps_test.tar.gz"
+    # This check for arm64 requires cross-platform PowerShell; you can still run the tests with
+    # Windows PowerShell using the -TestDistroPath parameter.
+    if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq "Arm64") {
+        $testDistroUrl = "https://dl-cdn.alpinelinux.org/alpine/v3.18/releases/aarch64/alpine-minirootfs-3.18.3-aarch64.tar.gz"
 
+    } else {
+        $testDistroUrl = "https://dl-cdn.alpinelinux.org/alpine/v3.18/releases/x86_64/alpine-minirootfs-3.18.3-x86_64.tar.gz"
+    }
+
+    $testDistroFile = "TestDrive:/wslps_test.tar.gz"
     if ($TestDistroPath) {
         Copy-Item $TestDistroPath $testDistroFile
+
     } else {
         Invoke-WebRequest $testDistroUrl -OutFile $testDistroFile
     }
@@ -92,11 +98,13 @@ Describe "WslManagementPS" {
     }
 
     It "Can accept empty collections as pipes" {
-        Get-WslDistribution | Remove-WslDistribution
-        Get-WslDistribution | Stop-WslDistribution
-        Get-WslDistribution | Export-WslDistribution -Destination "TestDrive:/wsl"
-        Get-WslDistribution | Invoke-WslCommand "echo foo"
-        Get-WslDistribution | Set-WslDistribution -Version 2
+        # Use the filter string to avoid affecting other distributions if someone ran this test on a
+        # system that has distributions by mistake.
+        Get-WslDistribution "wslps_*" | Remove-WslDistribution
+        Get-WslDistribution "wslps_*" | Stop-WslDistribution
+        Get-WslDistribution "wslps_*" | Export-WslDistribution -Destination "TestDrive:/wsl"
+        Get-WslDistribution "wslps_*" | Invoke-WslCommand "echo foo"
+        Get-WslDistribution "wslps_*" | Set-WslDistribution -Version 2
     }
 
     It "Throws when removing a non-existing distribution" {
