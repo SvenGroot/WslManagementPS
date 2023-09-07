@@ -1392,22 +1392,24 @@ function Get-WslVersion
         $result.DXCore = $output[5]
         $result.Windows = $output[6]
 
-    } else {
+    } elseif ($IsWindows) {
         $result.Windows = [Environment]::OSVersion.Version
     }
 
-    # Build 20150 is when WSL2 became the default if not specified in the registry.
-    if ([Environment]::OSVersion.Version -lt [Version]::new(10, 0, 20150)) {
-        $result.DefaultDistroVersion = 1
+    if ($IsWindows) {
+        # Build 20150 is when WSL2 became the default if not specified in the registry.
+        if ([Environment]::OSVersion.Version -lt [Version]::new(10, 0, 20150)) {
+            $result.DefaultDistroVersion = 1
 
-    } else {
-        $result.DefaultDistroVersion = 2
-    }
+        } else {
+            $result.DefaultDistroVersion = 2
+        }
 
-    if (Test-Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss) {
-        $props = Get-ItemProperty HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss
-        if ($props.DefaultVersion) {
-            $result.DefaultDistroVersion = $props.DefaultVersion
+        if (Test-Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss) {
+            $props = Get-ItemProperty HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss
+            if ($props.DefaultVersion) {
+                $result.DefaultDistroVersion = $props.DefaultVersion
+            }
         }
     }
 
