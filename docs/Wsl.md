@@ -1,43 +1,56 @@
 ---
 Module Name: Wsl
 Module Guid: 5aebb9a8-dbf6-44d3-8c6c-dc343d4e3f0a
-Download Help Link: {{ Update Download Link }}
-Help Version: {{ Please enter version of help manually (X.X.X.X) format }}
+Download Help Link: 
+Help Version: 1.1.0.0
 Locale: en-US
 ---
 
 # Wsl Module
+
 ## Description
-{{ Fill in the Description }}
+
+The Wsl module provides cmdlets that let you manage the Windows Subsystem for Linux and its
+distributions.
 
 ## Wsl Cmdlets
+
 ### [Enter-WslDistribution](Enter-WslDistribution.md)
-{{ Fill in the Description }}
+
+Starts an interactive session in a WSL distribution.
 
 ### [Export-WslDistribution](Export-WslDistribution.md)
-{{ Fill in the Description }}
+
+Exports a WSL distribution to a .tar.gz or VHD file.
 
 ### [Get-WslDistribution](Get-WslDistribution.md)
-{{ Fill in the Description }}
+
+Gets information about WSL distributions installed for the current user.
 
 ### [Get-WslVersion](Get-WslVersion.md)
-{{ Fill in the Description }}
+
+Gets version information about the Windows Subsystem for Linux and its components.
 
 ### [Import-WslDistribution](Import-WslDistribution.md)
-{{ Fill in the Description }}
+
+Imports a WSL distribution from a .tar.gz or VHD file.
 
 ### [Invoke-WslCommand](Invoke-WslCommand.md)
-{{ Fill in the Description }}
+
+Runs a command in a WSL distribution.
 
 ### [Remove-WslDistribution](Remove-WslDistribution.md)
-{{ Fill in the Description }}
+
+Unregisters a WSL distribution.
 
 ### [Set-WslDistribution](Set-WslDistribution.md)
-{{ Fill in the Description }}
+
+Changes the settings of a WSL distribution.
 
 ### [Stop-Wsl](Stop-Wsl.md)
-{{ Fill in the Description }}
+
+Terminates all WSL distributions, and shuts down the WSL2 lightweight utility VM.
 
 ### [Stop-WslDistribution](Stop-WslDistribution.md)
-{{ Fill in the Description }}
 
+Terminates a WSL distribution.

@@ -1,14 +1,15 @@
 ---
 external help file: Wsl-help.xml
 Module Name: Wsl
-online version:
+online version: https://github.com/SvenGroot/WslManagementPS/blob/main/docs/Stop-Wsl.md
 schema: 2.0.0
 ---
 
 # Stop-Wsl
 
 ## SYNOPSIS
-Stops all WSL distributions.
+
+Terminates all WSL distributions, and shuts down the WSL2 lightweight utility VM.
 
 ## SYNTAX
 
@@ -17,23 +18,26 @@ Stop-Wsl [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-The Stop-Wsl cmdlet terminates all WSL distributions, and for WSL2 also shuts down the lightweight
-utility VM.
 
-This cmdlet wraps the functionality of "wsl.exe --shutdown".
+The `Stop-Wsl` cmdlet terminates all WSL distributions, and shuts down the WSL2 lightweight utility
+VM.
+
+This cmdlet wraps the functionality of `wsl.exe --shutdown`.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
-```
+
+```powershell
 Stop-Wsl
 ```
 
-Shuts down WSL.
+This example terminates all WSL distributions, and shuts down the WSL2 lightweight utility VM.
 
 ## PARAMETERS
 
 ### -Confirm
+
 Prompts you for confirmation before running the cmdlet.
 
 ```yaml
@@ -49,6 +53,7 @@ Accept wildcard characters: False
 ```
 
 ### -WhatIf
+
 Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
@@ -65,14 +70,13 @@ Accept wildcard characters: False
 ```
 
 ### CommonParameters
+
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### None. This cmdlet does not take any input.
 ## OUTPUTS
 
-### None. This cmdlet does not generate any output.
 ## NOTES
 
 ## RELATED LINKS

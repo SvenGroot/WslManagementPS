@@ -341,3 +341,6 @@ See `Get-WslDistribution` for more information.
 ## NOTES
 
 ## RELATED LINKS
+
+[Get-WslDistribution](Get-WslDistribution.md)
+[Export-WslDistribution](Export-WslDistribution.md)

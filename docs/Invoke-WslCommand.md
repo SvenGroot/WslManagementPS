@@ -1,18 +1,20 @@
 ---
 external help file: Wsl-help.xml
 Module Name: Wsl
-online version:
+online version: https://github.com/SvenGroot/WslManagementPS/blob/main/docs/Invoke-WslCommand.md
 schema: 2.0.0
 ---
 
 # Invoke-WslCommand
 
 ## SYNOPSIS
-Runs a command in one or more WSL distributions.
+
+Runs a command in a WSL distribution.
 
 ## SYNTAX
 
 ### DistributionName
+
 ```
 Invoke-WslCommand [-Command] <String> [[-DistributionName] <String[]>] [[-User] <String>]
  [-WorkingDirectory <String>] [-ShellType <String>] [-System] [-Graphical] [-WhatIf] [-Confirm]
@@ -20,6 +22,7 @@ Invoke-WslCommand [-Command] <String> [[-DistributionName] <String[]>] [[-User] 
 ```
 
 ### Distribution
+
 ```
 Invoke-WslCommand [-Command] <String> -Distribution <WslDistribution[]> [[-User] <String>]
  [-WorkingDirectory <String>] [-ShellType <String>] [-System] [-Graphical] [-WhatIf] [-Confirm]
@@ -27,6 +30,7 @@ Invoke-WslCommand [-Command] <String> -Distribution <WslDistribution[]> [[-User]
 ```
 
 ### DistributionRaw
+
 ```
 Invoke-WslCommand [-RawCommand] -Distribution <WslDistribution[]> [[-User] <String>]
  [-WorkingDirectory <String>] [-ShellType <String>] [-System] [-Graphical] -Remaining <String[]> [-WhatIf]
@@ -34,6 +38,7 @@ Invoke-WslCommand [-RawCommand] -Distribution <WslDistribution[]> [[-User] <Stri
 ```
 
 ### DistributionNameRaw
+
 ```
 Invoke-WslCommand [-RawCommand] [[-DistributionName] <String[]>] [[-User] <String>]
  [-WorkingDirectory <String>] [-ShellType <String>] [-System] [-Graphical] -Remaining <String[]> [-WhatIf]
@@ -41,68 +46,80 @@ Invoke-WslCommand [-RawCommand] [[-DistributionName] <String[]>] [[-User] <Strin
 ```
 
 ## DESCRIPTION
-The Invoke-WslCommand cmdlet executes the specified command on the specified distributions, and
-then exits.
 
-This cmdlet will raise an error if executing wsl.exe failed (e.g.
-there is no distribution with
-the specified name) or if the command itself failed.
+The `Invoke-WslCommand` cmdlet executes a command in a WSL distribution, returning the output of the
+command as a string. The distribution to run the command in can be specified by name, or piped in
+from the `Get-WslDistribution` cmdlet. If no distribution is specified, the command is executed in
+the default distribution.
 
-The command to execute can be specified in two ways.
-The default is using the Command argument,
-which provides it as a single string that will be passed to /bin/sh to execute.
-Alternatively, you
-can use the RawCommand argument to use all remaining arguments which do not match an argument to
-this cmdlet as the command.
-You can use the -- separator to pass everything after to the WSL command.
-See the examples for an example of this usage.
+This cmdlet will throw an exception if executing wsl.exe failed (e.g. if there is no distribution
+with the specified name), or if the command exited with an non-zero exit code.
 
-This cmdlet wraps the functionality of "wsl.exe \<command\>".
+The command to execute can be specified in two ways. The default is using the **Command** parameter,
+where you provide the command in a single string, that will be passed to `/bin/sh -c` to execute it.
+
+Alternatively, you can use the **RawCommand** parameter to use all remaining parameters which do not
+match a known parameter for this cmdlet as the command. You can use the `--` separator to pass
+everything after to the WSL command. In this case, the command will be interpreted by the default
+shell configured in the distribution, rather than `/bin/sh`. See the examples for an example of this
+usage.
+
+This cmdlet wraps the functionality of `wsl.exe <command>`. If using the **Graphical** parameter, it
+instead wraps `wslg.exe <command>`.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
-```
-Invoke-WslCommand 'ls /etc'
+
+```powershell
+Invoke-WslCommand "ls /etc"
 ```
 
-Runs a command in the default distribution.
+This example runs a command in the default distribution.
 
 ### EXAMPLE 2
-```
-Invoke-WslCommand 'whoami' -DistributionName Ubuntu* -User root
+
+```powershell
+Invoke-WslCommand "whoami" -DistributionName "Ubuntu*" -User "root"
 ```
 
-Runs a command in all distributions whose names start with Ubuntu, as the "root" user.
+This example runs a command in all distributions whose name starts with "Ubuntu", as the "root"
+Linux user.
 
 ### EXAMPLE 3
-```
+
+```powershell
 Get-WslDistribution -Version 2 | Invoke-WslCommand 'echo $(whoami) in $WSL_DISTRO_NAME'
 ```
 
-Runs a command in all WSL2 distributions.
+This example runs a command in all WSL2 distributions. Single quotes are used to prevent the dollar
+sign from being interpreted by PowerShell without needing to escape them, instead passing them to
+the Linux shell.
 
 ### EXAMPLE 4
-```
+
+```powershell
 Invoke-WslCommand -RawCommand echo Hello, $`(whoami`)
 ```
 
-Uses the remaining arguments as the command.
-Characters that would be interpreted by PowerShell need
-to be escaped.
+This example uses the **RawCommand** parameter, so all unrecognized remaining parameters will form
+the command, without needing to quote it. Characters that would be interpreted by PowerShell need to
+be escaped with a backtick.
 
 ### EXAMPLE 5
-```
+
+```powershell
 Invoke-WslCommand -RawCommand -- ls -u
 ```
 
-Uses the remaining arguments as the command.
-The -- separator makes sure the -u token is part of the
-command, and not interpreted by PowerShell as an alias for the User argument.
+This example uses the **RawCommand** parameter, and uses the `--` separator to use everything after
+it as part of the Linux command, even if it's a valid parameter for `Invoke-WslCommand`. This
+prevents `-u` from being interpreted as an alias for the **User** argument.
 
 ## PARAMETERS
 
 ### -Command
+
 Specifies the command to run.
 
 ```yaml
@@ -118,8 +135,8 @@ Accept wildcard characters: False
 ```
 
 ### -Distribution
-Specifies WslDistribution objects that represent the distributions to run the command in.
-By default, the command is executed in the default distribution.
+
+Specifies the distribution to run the command in.
 
 ```yaml
 Type: WslDistribution[]
@@ -134,9 +151,8 @@ Accept wildcard characters: False
 ```
 
 ### -DistributionName
-Specifies the distribution names of distributions to run the command in.
-Wildcards are permitted.
-By default, the command is executed in the default distribution.
+
+Specifies the name of a distribution to run the command in.
 
 ```yaml
 Type: String[]
@@ -151,9 +167,9 @@ Accept wildcard characters: True
 ```
 
 ### -Graphical
-Run the command using WSLg.
-Using this option prevents blocking the terminal while running GUI
-applications.
+
+Specifies that the command should be executed using WSLg. Using this option prevents blocking the
+terminal while running GUI applications.
 
 This parameter requires at least WSL version 0.47.1.
 
@@ -170,7 +186,8 @@ Accept wildcard characters: False
 ```
 
 ### -RawCommand
-Uses all remaining arguments to this cmdlet as the command to run.
+
+Specifies that all remaining unrecognized parameters to this cmdlet are used as the command to run.
 
 ```yaml
 Type: SwitchParameter
@@ -185,6 +202,7 @@ Accept wildcard characters: False
 ```
 
 ### -Remaining
+
 Collects the remaining arguments for the RawCommand switch.
 
 ```yaml
@@ -200,10 +218,10 @@ Accept wildcard characters: False
 ```
 
 ### -ShellType
-Specifies the shell type to use for the command, either "Standard", "Login", or "None".
-Note that if
-you are not using the RawCommand switch, the command is still executed using /bin/sh on top of the
-selected shell type.
+
+Specifies the shell type to use for the command, either `Standard`, `Login`, or `None`. Note that if
+you are not using the **RawCommand** parameter, the command is still executed using `/bin/sh` on top
+of the selected shell type.
 
 This parameter requires at least WSL version 0.64.1.
 
@@ -220,6 +238,7 @@ Accept wildcard characters: False
 ```
 
 ### -System
+
 Specifies that the command should be executed in the system distribution.
 
 This parameter requires at least WSL version 0.47.1.
@@ -237,9 +256,8 @@ Accept wildcard characters: False
 ```
 
 ### -User
-Specifies the name of a user in the distribution to run the command as.
-By default, the
-distribution's default user is used.
+
+Specifies the Linux user to run the command as.
 
 ```yaml
 Type: String
@@ -254,11 +272,9 @@ Accept wildcard characters: False
 ```
 
 ### -WorkingDirectory
-Specifies the working directory to use for the command.
-Use "~" for the Linux user's home path.
-If
-the path starts with a "/" character, it will be interpreted as an absolute Linux path.
-Otherwise,
+
+Specifies the working directory to use for the command. Use `~` for the Linux user's home path. If
+the path starts with a `/` character, it will be interpreted as an absolute Linux path. Otherwise,
 the value must be a Windows path.
 
 ```yaml
@@ -274,6 +290,7 @@ Accept wildcard characters: False
 ```
 
 ### -Confirm
+
 Prompts you for confirmation before running the cmdlet.
 
 ```yaml
@@ -289,6 +306,7 @@ Accept wildcard characters: False
 ```
 
 ### -WhatIf
+
 Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
@@ -305,17 +323,28 @@ Accept wildcard characters: False
 ```
 
 ### CommonParameters
+
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### WslDistribution, System.String
-### You can pipe a WslDistribution object retrieved by Get-WslDistribution, or a string that contains
-### the distribution name to this cmdlet.
+### WslDistribution
+
+You can pipe an object retrieved by `Get-WslDistribution` to this cmdlet.
+
+### System.String
+
+You can pipe a distribution name to this cmdlet.
+
 ## OUTPUTS
 
 ### System.String
-### This command outputs the result of the command you executed, as text.
+
+This cmdlet returns the output of the command, as text.
+
 ## NOTES
 
 ## RELATED LINKS
+
+[Get-WslDistribution](Get-WslDistribution.md)
+[Enter-WslDistribution](Enter-WslDistribution.md)

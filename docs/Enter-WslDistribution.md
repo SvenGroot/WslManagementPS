@@ -39,6 +39,8 @@ cmdlet. If no distribution is specifies, the default distribution will be used.
 This cmdlet will throw an exception if executing wsl.exe failed (e.g. if there is no distribution
 with the specified name), or if the session exited with an error code.
 
+This cmdlet wraps the functionality of `wsl.exe` without specifying a command.
+
 ## EXAMPLES
 
 ### EXAMPLE 1
@@ -140,7 +142,7 @@ Accept wildcard characters: False
 
 ### -User
 
-Run the interactive session as the specified Linux user.
+Specifies the Linux user to run the interactive session as.
 
 ```yaml
 Type: String
@@ -226,3 +228,4 @@ You can pipe a distribution name to this cmdlet.
 ## RELATED LINKS
 
 [Get-WslDistribution](Get-WslDistribution.md)
+[Invoke-WslCommand](Invoke-WslCommand.md)
