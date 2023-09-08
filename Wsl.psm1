@@ -9,6 +9,13 @@ enum WslDistributionState {
     Converting
 }
 
+# Represents the format of a distribution to export or import.
+enum WslExportFormat {
+    Auto
+    Tar
+    Vhd
+}
+
 # Represents a WSL distribution.
 class WslDistribution
 {
@@ -425,7 +432,7 @@ function Export-WslDistribution
         [Parameter(Mandatory = $true, Position = 1)]
         [string]$Destination,
         [Parameter(Mandatory = $false)]
-        [Switch]$Vhd,
+        [WslExportFormat]$Format = [WslExportFormat]::Auto,
         [Parameter(Mandatory = $false)]
         [Switch]$Passthru
     )
@@ -444,15 +451,29 @@ function Export-WslDistribution
 
         $distros | ForEach-Object {
             $fullPath = $Destination
+            $vhd = $false
             if (Test-Path $Destination -PathType Container) {
-                if ($Vhd) {
+                if ($Format -eq [WslExportFormat]::Vhd) {
                     $extension = ".vhdx"
+                    $vhd = $true
 
                 } else {
                     $extension = ".tar.gz"
                 }
 
                 $fullPath = Join-Path $Destination "$($_.Name)$extension"
+
+            } else {
+                if ($Format -eq [WslExportFormat]::Auto) {
+                    # Split-Path -Extension is not available on Windows PowerShell.
+                    $extension = [System.IO.Path]::GetExtension($Destination)
+                    if ($extension -ieq ".vhdx") {
+                        $vhd = $true
+                    }
+
+                } else {
+                    $vhd = ($Format -eq [WslExportFormat]::Vhd)
+                }
             }
 
             if (Test-Path $fullPath) {
@@ -462,7 +483,7 @@ function Export-WslDistribution
             $fullPath = Get-UnresolvedProviderPath $fullPath
             if ($PSCmdlet.ShouldProcess("Name: $($_.Name), Path: $fullPath", "Export")) {
                 $wslArgs = @("--export", $_.Name, $fullPath)
-                if ($Vhd) {
+                if ($vhd) {
                     $wslArgs += "--vhd"
                 }
 

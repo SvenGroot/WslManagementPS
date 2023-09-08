@@ -16,15 +16,15 @@ Exports a WSL distribution to a .tar.gz or VHD file.
 ### DistributionName
 
 ```
-Export-WslDistribution [-Name] <String[]> [-Destination] <String> [-Vhd] [-Passthru] [-WhatIf] [-Confirm]
- [<CommonParameters>]
+Export-WslDistribution [-Name] <String[]> [-Destination] <String> [-Format <WslExportFormat>] [-Passthru]
+ [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Distribution
 
 ```
-Export-WslDistribution -Distribution <WslDistribution[]> [-Destination] <String> [-Vhd] [-Passthru] [-WhatIf]
- [-Confirm] [<CommonParameters>]
+Export-WslDistribution -Distribution <WslDistribution[]> [-Destination] <String> [-Format <WslExportFormat>]
+ [-Passthru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -33,9 +33,12 @@ The `Export-WslDistribution` cmdlet exports a WSL distributions to a gzipped tar
 The distribution to export can be specified by name, or piped in from the `Get-WslDistribution`
 cmdlet.
 
-If the Destination parameter is an existing directory, the name of the distribution, with the
+If the **Destination** parameter is an existing directory, the name of the distribution, with the
 extension .tar.gz or .vhdx, will be used as the file name. This allows you to export multiple
 distributions to a directory using a single command.
+
+The default behavior is to export as a gzipped tarball, unless the **Destination** is a file name
+ending in .vhdx. This behavior can be changed using the **Format** parameter.
 
 This cmdlet wraps the functionality of `wsl.exe --export`.
 
@@ -47,16 +50,16 @@ This cmdlet wraps the functionality of `wsl.exe --export`.
 Export-WslDistribution "Ubuntu" D:\backup.tar.gz
 ```
 
-This example exports the distribution named "Ubuntu" to a file named D:\backup.tar.gz.
+This example exports the distribution named "Ubuntu" to a file named `D:\backup.tar.gz`.
 
 ### EXAMPLE 2
 
 ```powershell
-Export-WslDistribution "Ubuntu" D:\backup.vhdx -Vhd
+Export-WslDistribution "Ubuntu" D:\backup.vhdx
 ```
 
-This example exports the distribution named "Ubuntu" to a file named D:\backup.vhdx which is a VHD,
-not a gzipped tarball. This requires the distribution to use WSL2.
+This example exports the distribution named "Ubuntu" to a file named `D:\backup.vhdx` which is a
+VHD, not a gzipped tarball. This requires the distribution to use WSL2.
 
 ### EXAMPLE 3
 
@@ -65,23 +68,13 @@ New-Item D:\backup -ItemType Directory
 Export-WslDistribution "Ubuntu*" D:\backup
 ```
 
-This example exports all distributions whose name starts with Ubuntu to a directory named D:\backup.
+This example exports all distributions whose name starts with Ubuntu to a directory named `D:\backup`.
 Separate .tar.gz files will be created for each distribution.
 
 ### EXAMPLE 4
 
 ```powershell
-New-Item D:\backup -ItemType Directory
-Export-WslDistribution "Ubuntu*" D:\backup -Vhd
-```
-
-This example exports all distributions whose name starts with Ubuntu to a directory named D:\backup.
-Separate .vhdx files will be created for each distribution.
-
-### EXAMPLE 5
-
-```powershell
-Get-WslDistribution -Version 2 | Export-WslDistribution -Destination D:\backup -Passthru
+Get-WslDistribution -Version 2 | Export-WslDistribution -Destination D:\backup -Format "Vhd" -Passthru
 ```
 
 ```Output
@@ -91,8 +84,9 @@ Ubuntu       Stopped       2    True
 Alpine       Stopped       2   False
 ```
 
-This example exports all WSL2 distributions to a directory named D:\backup. It uses the Passthru
-parameter to return the WslDistribution objects for the affected distributions.
+This example exports all WSL2 distributions to a directory named `D:\backup`, using VHD format. It
+uses the **Passthru** parameter to return the WslDistribution objects for the affected
+distributions.
 
 ## PARAMETERS
 
@@ -134,6 +128,30 @@ Accept pipeline input: True (ByValue)
 Accept wildcard characters: False
 ```
 
+### -Format
+
+Specifies the format of the exported distribution. This parameter accepts the following values:
+`Auto` exports as a gzipped tarball, unless the **Destination** is a file name ending in `.vhdx`, in
+which case VHD format is used; `Tar` exports as a gzipped tarball; and `Vhd` exports as a Virtual
+Hard Disk.
+
+Exporting as a VHD is only possible for WSL2 distributions.
+
+This parameter requires at least WSL version 0.58.
+
+```yaml
+Type: WslExportFormat
+Parameter Sets: (All)
+Aliases:
+Accepted values: Auto, Tar, Vhd
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -Name
 
 Specifies the name of a distribution to be terminated.
@@ -166,26 +184,6 @@ Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
-
-### -Vhd
-
-Specifies that the distribution should be exported as a .vhdx file, instead of a .tar.gz file. This
-is only supported for WSL2 distributions.
-
-This parameter requires at least WSL version 0.58.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### -Confirm
 
 Prompts you for confirmation before running the cmdlet.
