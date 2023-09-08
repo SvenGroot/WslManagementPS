@@ -13,6 +13,20 @@ Imports a WSL distribution from a .tar.gz or VHD file.
 
 ## SYNTAX
 
+### Path
+
+```
+Import-WslDistribution [-Path] <String[]> [-Destination] <String> [[-Name] <String>] [[-Version] <Int32>]
+ [-RawDestination] [-Format <WslExportFormat>] [-Passthru] [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+
+### LiteralPath
+
+```
+Import-WslDistribution -LiteralPath <String[]> [-Destination] <String> [[-Name] <String>] [[-Version] <Int32>]
+ [-RawDestination] [-Format <WslExportFormat>] [-Passthru] [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+
 ### LiteralPathInPlace
 
 ```
@@ -27,20 +41,6 @@ Import-WslDistribution [-InPlace] [-Path] <String[]> [[-Name] <String>] [-Passth
  [<CommonParameters>]
 ```
 
-### Path
-
-```
-Import-WslDistribution [-Path] <String[]> [-Destination] <String> [[-Name] <String>] [[-Version] <Int32>]
- [-RawDestination] [-Vhd] [-Passthru] [-WhatIf] [-Confirm] [<CommonParameters>]
-```
-
-### LiteralPath
-
-```
-Import-WslDistribution -LiteralPath <String[]> [-Destination] <String> [[-Name] <String>] [[-Version] <Int32>]
- [-RawDestination] [-Vhd] [-Passthru] [-WhatIf] [-Confirm] [<CommonParameters>]
-```
-
 ## DESCRIPTION
 
 The `Import-WslDistribution` cmdlet imports a WSL distribution that was previously exported to a
@@ -50,7 +50,7 @@ If you do not specify a distribution name, the name is derived from the input fi
 a file named "Ubuntu.tar.gz" would be imported to a distribution named "Ubuntu".
 
 A directory with the name of the distribution is created as a child of the path specified using the
-Destination parameter, unless the RawDestination parameter is used. This allows multiple
+**Destination** parameter, unless the **RawDestination** parameter is used. This allows multiple
 distributions to be imported using a single command.
 
 This cmdlet wraps the functionality of `wsl.exe --import`.
@@ -63,8 +63,8 @@ This cmdlet wraps the functionality of `wsl.exe --import`.
 Import-WslDistribution D:\backup.tar.gz D:\wsl "Ubuntu"
 ```
 
-This example imports the file named D:\backup.tar.gz as a distribution named "Ubuntu", whose
-filesystem will be stored in the directory D:\wsl\Ubuntu.
+This example imports the file named `D:\backup.tar.gz` as a distribution named "Ubuntu", whose
+filesystem will be stored in the directory `D:\wsl\Ubuntu`.
 
 ### EXAMPLE 2
 
@@ -72,8 +72,8 @@ filesystem will be stored in the directory D:\wsl\Ubuntu.
 Import-WslDistribution D:\backup.tar.gz D:\wsl\mydistro "Ubuntu" -RawDestination
 ```
 
-This example imports the file named D:\backup.tar.gz as a distribution named "Ubuntu", whose file
-system will be stored in the directory D:\wsl\mydistro. The name of the distribution is not appended
+This example imports the file named `D:\backup.tar.gz` as a distribution named "Ubuntu", whose file
+system will be stored in the directory `D:\wsl\mydistro`. The name of the distribution is not appended
 to this path because the RawDestination parameter was used.
 
 ### EXAMPLE 3
@@ -82,19 +82,17 @@ to this path because the RawDestination parameter was used.
 Import-WslDistribution D:\backup\*.tar.gz D:\wsl
 ```
 
-This example imports all .tar.gz files from D:\backup, using the base name of each file as the name
-of the distribution. Each distribution will be stored in a separate subdirectory of D:\wsl.
+This example imports all .tar.gz files from `D:\backup`, using the base name of each file as the name
+of the distribution. Each distribution will be stored in a separate subdirectory of `D:\wsl`.
 
 ### EXAMPLE 4
 
 ```powershell
-Import-WslDistribution D:\backup\*.vhdx D:\wsl -Vhd
+Import-WslDistribution D:\backup\*.vhdx D:\wsl
 ```
 
-This example imports all .vhdx files from D:\backup, using the base name of each file as the name
-of the distribution. Each VHD file will be copied to a separate subdirectory of D:\wsl.
-
-The Vhd parameter is required to indicate the input files are VHDs.
+This example imports all .vhdx files from `D:\backup`, using the base name of each file as the name
+of the distribution. Each VHD file will be copied to a separate subdirectory of `D:\wsl`.
 
 ### EXAMPLE 5
 
@@ -102,7 +100,7 @@ The Vhd parameter is required to indicate the input files are VHDs.
 Import-WslDistribution -InPlace D:\wsl\Ubuntu.vhdx
 ```
 
-This example imports the file named D:\wsl\Ubuntu.vhdx as a distribution named "Ubuntu", using the
+This example imports the file named `D:\wsl\Ubuntu.vhdx` as a distribution named "Ubuntu", using the
 file at its present location.
 
 ### EXAMPLE 6
@@ -119,7 +117,7 @@ Debian       Stopped       2   False
 ```
 
 This example imports all .tar.gz files, except those whose names start with Ubuntu, as WSL2
-distributions stored in subdirectories of D:\wsl. It uses the Passthru parameter to return the
+distributions stored in subdirectories of `D:\wsl`. It uses the Passthru parameter to return the
 WslDistribution objects for the imported distributions.
 
 ## PARAMETERS
@@ -139,6 +137,28 @@ Aliases:
 
 Required: True
 Position: 2
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Format
+
+Specifies the format of the file to import, which can be either a gzipped tarball or a VHD. This
+parameter accepts the following values: `Auto` determines the format based on the file extension;
+`Tar` indicates the file is a gzipped tarball; and `Vhd` indicates the file is a Virtual Hard Disk.
+
+When using `Auto`, all files are assumed to be gzipped tarballs, unless their name ends in `.vhdx`.
+
+This parameter requires at least WSL version 0.58.
+
+```yaml
+Type: WslExportFormat
+Parameter Sets: Path, LiteralPath
+Aliases:
+
+Required: False
+Position: Named
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -265,24 +285,6 @@ Aliases:
 Required: False
 Position: 4
 Default value: 0
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Vhd
-
-Specifies that the input file is a .vhdx file that will be copied to the destination.
-
-This parameter requires at least WSL version 0.58.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: Path, LiteralPath
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

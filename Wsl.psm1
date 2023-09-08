@@ -532,7 +532,7 @@ function Import-WslDistribution
         [Switch]$RawDestination,
         [Parameter(Mandatory = $false, ParameterSetName = "Path")]
         [Parameter(Mandatory = $false, ParameterSetName = "LiteralPath")]
-        [Switch]$Vhd,
+        [WslExportFormat]$Format = [WslExportFormat]::Auto,
         [Parameter(Mandatory = $false)]
         [Switch]$Passthru
     )
@@ -554,6 +554,13 @@ function Import-WslDistribution
                 }
             }
 
+            if ($Format -eq [WslExportFormat]::Auto) {
+                $vhd = $_.Extension -ieq ".vhdx"
+
+            } else {
+                $vhd = $Format -eq [WslExportFormat]::Vhd
+            }
+
             if ($InPlace) {
                 if ($PSCmdlet.ShouldProcess("Path: $($_.FullName) (in place), Name: $distributionName", "Import")) {
                     Invoke-Wsl @("--import-in-place", $distributionName, $_.FullName) | Out-Null
@@ -572,7 +579,7 @@ function Import-WslDistribution
                         $wslArgs += @("--version", $Version)
                     }
 
-                    if ($Vhd) {
+                    if ($vhd) {
                         $wslArgs += "--vhd"
                     }
 

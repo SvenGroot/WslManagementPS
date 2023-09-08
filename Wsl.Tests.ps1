@@ -186,10 +186,14 @@ Describe "WslManagementPS" {
             (Get-Item "TestDrive:/exported/test2.vhdx").Length | Should -Not -Be $vhdSize
 
             # Import VHDs
-            $distro = Import-WslDistribution "TestDrive:/exported/wslps_test2.vhdx" "TestDrive:/wsl" "wslps_vhd1" -Vhd -Passthru
+            $distro = Import-WslDistribution "TestDrive:/exported/wslps_test2.vhdx" "TestDrive:/wsl" "wslps_vhd1" -Passthru
             Test-Distro $distro "wslps_vhd1" 2 "Stopped"
             $distro = Import-WslDistribution -InPlace "TestDrive:/exported/wslps_test2.vhdx" "wslps_vhd2" -Passthru
             Test-Distro $distro "wslps_vhd2" 2 "Stopped" "$TestDrive\exported" "wslps_test2.vhdx"
+
+            # -Format overrides extension on import
+            $distro = Import-WslDistribution "TestDrive:/exported/test2.vhdx" "TestDrive:/wsl" "wslps_vhd3" -Format "tar" -Passthru
+            Test-Distro $distro "wslps_vhd3" 2 "Stopped"
 
         } finally {
             try { Remove-WslDistribution "wslps_vhd*" } catch {}
