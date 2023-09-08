@@ -40,7 +40,7 @@ class WslDistribution
     [string]$VhdPath
 }
 
-# Provides version of various WSL components.
+# Provides the versions of various WSL components.
 class WslVersionInfo {
     [Version]$Wsl
     [Version]$Kernel
@@ -148,17 +148,18 @@ function Invoke-Wsl([string[]]$WslArgs, [Switch]$IgnoreErrors)
 
     # $hasError is used so there's no output in case error action is silently continue.
     if ($hasError) {
-        if ($IgnoreErrors) {
-            return @()
+        if (-not $IgnoreErrors) {
+            throw "Wsl.exe failed: $output"
         }
 
-        throw "Wsl.exe failed: $output"
+        return @()
     }
 
     return $output
 }
 
-# Helper to parse the output of wsl.exe --list
+# Helper to parse the output of wsl.exe --list.
+# Also used by the tab completion function.
 function Get-WslDistributionHelper()
 {
     Invoke-Wsl "--list","--verbose" -IgnoreErrors | Select-Object -Skip 1 | ForEach-Object {
@@ -201,81 +202,8 @@ function Get-WslDistributionProperties([WslDistribution]$Distribution)
 }
 
 <#
-.SYNOPSIS
-Gets the WSL distributions installed on the computer.
-
-.DESCRIPTION
-The Get-WslDistribution cmdlet gets objects that represent the WSL distributions on the computer.
-
-This cmdlet wraps the functionality of "wsl.exe --list --verbose".
-
-.PARAMETER Name
-Specifies the distribution names of distributions to be retrieved. Wildcards are permitted. By
-default, this cmdlet gets all of the distributions on the computer.
-
-.PARAMETER Default
-Indicates that this cmdlet gets only the default distribution. If this is combined with other
-parameters such as Name, nothing will be returned unless the default distribution matches all the
-conditions. By default, this cmdlet gets all of the distributions on the computer.
-
-.PARAMETER State
-Indicates that this cmdlet gets only distributions in the specified state (e.g. Running). By
-default, this cmdlet gets all of the distributions on the computer.
-
-.PARAMETER Version
-Indicates that this cmdlet gets only distributions that are the specified version. By default,
-this cmdlet gets all of the distributions on the computer.
-
-.INPUTS
-System.String
-
-You can pipe a distribution name to this cmdlet.
-
-.OUTPUTS
-WslDistribution
-
-The cmdlet returns objects that represent the distributions on the computer.
-
-.EXAMPLE
-Get-WslDistribution
-Name           State Version Default
-----           ----- ------- -------
-Ubuntu       Stopped       2    True
-Ubuntu-18.04 Running       1   False
-Alpine       Running       2   False
-Debian       Stopped       1   False
-
-Get all WSL distributions.
-
-.EXAMPLE
-Get-WslDistribution -Default
-Name           State Version Default
-----           ----- ------- -------
-Ubuntu       Stopped       2    True
-
-Get the default distribution.
-
-.EXAMPLE
-Get-WslDistribution -Version 2 -State Running
-Name           State Version Default
-----           ----- ------- -------
-Alpine       Running       2   False
-
-Get running WSL2 distributions.
-
-.EXAMPLE
-Get-WslDistribution Ubuntu* | Stop-WslDistribution
-
-Terminate all distributions that start with Ubuntu
-
-.EXAMPLE
-Get-Content distributions.txt | Get-WslDistribution
-Name           State Version Default
-----           ----- ------- -------
-Ubuntu       Stopped       2    True
-Debian       Stopped       1   False
-
-Use the pipeline as input.
+.EXTERNALHELP
+Wsl-help.xml
 #>
 function Get-WslDistribution
 {
@@ -337,56 +265,8 @@ function Get-WslDistribution
 }
 
 <#
-.SYNOPSIS
-Stops one or more running WSL distributions.
-
-.DESCRIPTION
-The Stop-WslDistribution cmdlet terminates each of the specified WSL distributions. You can specify
-distributions by their names, or use the Distribution parameter to pass an object returned by
-Get-WslDistribution.
-
-This cmdlet wraps the functionality of "wsl.exe --terminate".
-
-.PARAMETER Name
-Specifies the distribution names of distributions to be terminated. Wildcards are permitted.
-
-.PARAMETER Distribution
-Specifies WslDistribution objects that represent the distributions to be terminated.
-
-.PARAMETER Passthru
-Returns an object that represents the distribution. By default, this cmdlet does not generate any
-output.
-
-.INPUTS
-WslDistribution, System.String
-
-You can pipe a WslDistribution object retrieved by Get-WslDistribution, or a string that contains
-the distribution name to this cmdlet.
-
-.OUTPUTS
-WslDistribution
-
-The cmdlet returns an object that represent the distribution, if you use the Passthru parameter.
-Otherwise, this cmdlet does not generate any output.
-
-.EXAMPLE
-Stop-WslDistribution Ubuntu
-
-Stops the distribution named "Ubuntu".
-
-.EXAMPLE
-Stop-WslDistribution Ubuntu*
-
-Terminate all distributions whose names start with Ubuntu
-
-.EXAMPLE
-Get-WslDistribution -Version 2 | Stop-WslDistribution -Passthru
-Name           State Version Default
-----           ----- ------- -------
-Ubuntu       Stopped       2    True
-Alpine       Stopped       2   False
-
-Stops all WSL2 distributions.
+.EXTERNALHELP
+Wsl-help.xml
 #>
 function Stop-WslDistribution
 {
@@ -431,58 +311,8 @@ function Stop-WslDistribution
 }
 
 <#
-.SYNOPSIS
-Configures one or more WSL distributions
-
-.DESCRIPTION
-The Set-WslDistribution cmdlet changes the properties of a WSL distribution. You can specify
-distributions by their names, or use the Distribution parameter to pass an object returned by
-Get-WslDistribution.
-
-This cmdlet wraps the functionality of "wsl.exe --set-default" and "wsl.exe --set-version".
-
-.PARAMETER Name
-Specifies the distribution names of distributions to be configured. Wildcards are permitted.
-
-.PARAMETER Distribution
-Specifies WslDistribution objects that represent the distributions to be configured.
-
-.PARAMETER Version
-When specified, converts the distribution to the specified version. This may take several minutes.
-
-.PARAMETER Default
-When specified, sets the distribution as the default distribution. If multiple distributions are
-specified as input, the last one processed will be the default after the command finishes.
-
-.PARAMETER Passthru
-Returns an object that represents the distribution. By default, this cmdlet does not generate any
-output.
-
-.INPUTS
-WslDistribution, System.String
-
-You can pipe a WslDistribution object retrieved by Get-WslDistribution, or a string that contains
-the distribution name to this cmdlet.
-
-.OUTPUTS
-WslDistribution
-
-The cmdlet returns an object that represent the distribution, if you use the Passthru parameter.
-Otherwise, this cmdlet does not generate any output.
-
-.EXAMPLE
-Set-WslDistribution Ubuntu -Default
-
-Makes the distribution named "Ubuntu" the default.
-
-.EXAMPLE
-Get-WslDistribution -Version 1 | Set-WslDistribution -Version 2 -Passthru
-Name           State Version Default
-----           ----- ------- -------
-Ubuntu-18.04 Running       2   False
-Debian       Stopped       2   False
-
-Converts all version 1 distributions to version 2.
+.EXTERNALHELP
+Wsl-help.xml
 #>
 function Set-WslDistribution
 {
@@ -543,50 +373,8 @@ function Set-WslDistribution
 }
 
 <#
-.SYNOPSIS
-Removes one or more WSL distributions from the computer.
-
-.DESCRIPTION
-The Remove-WslDistribution cmdlet unregisters each of the specified WSL distributions. You can specify
-distributions by their names, or use the Distribution parameter to pass an object returned by
-Get-WslDistribution.
-
-This cmdlet wraps the functionality of "wsl.exe --unregister".
-
-.PARAMETER Name
-Specifies the distribution names of distributions to be removed. Wildcards are permitted.
-
-.PARAMETER Distribution
-Specifies WslDistribution objects that represent the distributions to be removed.
-
-.INPUTS
-WslDistribution, System.String
-
-You can pipe a WslDistribution object retrieved by Get-WslDistribution, or a string that contains
-the distribution name to this cmdlet.
-
-.OUTPUTS
-None. This cmdlet does not generate any output.
-
-.EXAMPLE
-Remove-WslDistribution Ubuntu
-
-Unregisters the distribution named "Ubuntu".
-
-.EXAMPLE
-Remove-WslDistribution Ubuntu*
-
-Unregisters all distributions whose names start with Ubuntu
-
-.EXAMPLE
-Get-WslDistribution -Version 1 | Remove-WslDistribution
-
-Unregisters all WSL1 distributions.
-
-.EXAMPLE
-Get-WslDistribution | Where-Object { $_.Name -ine "Ubuntu" } | Remove-WslDistribution
-
-Unregisters all distributions except the one named "Ubuntu".
+.EXTERNALHELP
+Wsl-help.xml
 #>
 function Remove-WslDistribution
 {
@@ -621,83 +409,8 @@ function Remove-WslDistribution
 }
 
 <#
-.SYNOPSIS
-Exports one or more WSL distributions to a .tar.gz or VHD file.
-
-.DESCRIPTION
-The Export-WslDistribution cmdlet exports each of the specified WSL distributions to a gzipped
-tarball or VHD. You can specify distributions by their names, or use the Distribution parameter to
-pass an object returned by Get-WslDistribution.
-
-You can export multiple distributions by specifying a directory as the Destination. In this case,
-this cmdlet will automatically create files using the distribution name with the extension .tar.gz
-or .vhdx.
-
-This cmdlet wraps the functionality of "wsl.exe --export".
-
-.PARAMETER Name
-Specifies the distribution names of distributions to be exported. Wildcards are permitted.
-
-.PARAMETER Distribution
-Specifies WslDistribution objects that represent the distributions to be exported.
-
-.PARAMETER Destination
-Specifies the destination directory or file name where the exported distribution will be stored.
-
-If you specify an existing directory as the destination, this cmdlet will append a file name based
-on the distribution name. If you specify a non-existing file name, that name will be used verbatim.
-
-.PARAMETER Vhd
-Export the distribution as a .vhdx file, instead of a .tar.gz file.
-
-This parameter requires at least WSL version 0.58.
-
-.PARAMETER Passthru
-Returns an object that represents the distribution. By default, this cmdlet does not generate any
-output.
-
-.INPUTS
-WslDistribution, System.String
-
-You can pipe a WslDistribution object retrieved by Get-WslDistribution, or a string that contains
-the distribution name to this cmdlet.
-
-.OUTPUTS
-WslDistribution
-
-The cmdlet returns an object that represent the distribution, if you use the Passthru parameter.
-Otherwise, this cmdlet does not generate any output.
-
-.EXAMPLE
-Export-WslDistribution Ubuntu D:\backup.tar.gz
-
-Exports the distribution named "Ubuntu" to a file named D:\backup.tar.gz.
-
-.EXAMPLE
-Export-WslDistribution Ubuntu D:\backup.vhdx -Vhd
-
-Exports the distribution named "Ubuntu" to a file named D:\backup.vhdx which is a VHD, not a gzipped
-tarball.
-
-.EXAMPLE
-Export-WslDistribution Ubuntu* D:\backup
-
-Exports all distributions whose names start with Ubuntu to files in a directory named D:\backup.
-
-.EXAMPLE
-Export-WslDistribution Ubuntu* D:\backup -Vhd
-
-Exports all distributions whose names start with Ubuntu to files in a directory named D:\backup,
-using .vhdx files.
-
-.EXAMPLE
-Get-WslDistribution -Version 2 | Export-WslDistribution -Destination D:\backup -Passthru
-Name           State Version Default
-----           ----- ------- -------
-Ubuntu       Stopped       2    True
-Alpine       Stopped       2   False
-
-Exports all WSL2 distributions to a directory named D:\backup.
+.EXTERNALHELP
+Wsl-help.xml
 #>
 function Export-WslDistribution
 {
@@ -764,113 +477,8 @@ function Export-WslDistribution
 }
 
 <#
-.SYNOPSIS
-Imports one or more WSL distributions from a .tar.gz or VHD file.
-
-.DESCRIPTION
-The Import-WslDistribution cmdlet imports each of the specified gzipped tarball files to a WSL
-distribution. to a gzipped.
-
-By default, this cmdlet derives the distribution name from the input file name, and appends that
-name to the destination path. This allows you to import multiple distributions.
-
-This cmdlet wraps the functionality of "wsl.exe --import".
-
-.PARAMETER InPlace
-Registers the specified file as a WSL distribution in its current location, without copying it. The
-input must be a .vhdx file when importing in place.
-
-This parameter requires at least WSL version 0.58.
-
-.PARAMETER Path
-Specifies the path to a .tar.gz or .vhdx file to import. Wildcards are permitted.
-
-.PARAMETER LiteralPath
-Specifies the path to a .tar.gz or .vhdx file to import. The value of LiteralPath is used exactly as
-it is typed. No characters are interpreted as wildcards.
-
-.PARAMETER Destination
-Specifies the destination directory or file name where the imported distribution will be stored. The
-distribution name will be appended to this path (e.g. if you specify "D:\wsl" and the distribution
-is named "Ubuntu", the distribution will be stored in "D:\wsl\Ubuntu"), unless the RawDestination
-parameter is specified.
-
-.PARAMETER Name
-Specifies the name of the imported WSL distribution.
-
-By default, this cmdlet uses the base name of the file being imported (e.g. "Ubuntu" if the file
-is "Ubuntu.tar.gz"). Note that distribution names can only contain letters, numbers, dashes and
-underscores. If the file contains any other characters, you must specify a distribution name.
-
-If you specify a distribution name, you cannot import multiple distributions with one command.
-
-.PARAMETER Version
-Specifies the WSL version to use for the imported distribution. By default, this cmdlet uses the
-version set with "wsl.exe --set-default-version".
-
-.PARAMETER RawDestination
-Indicates that the destination path should be used as is, without appending the distribution name
-to it. By default, the distribution name is appended to the path.
-
-If RawDestination is specified, you cannot import multiple distributions with one command.
-
-.PARAMETER Vhd
-Indicates that the input file is a .vhdx file that will be copied to the destination.
-
-This parameter requires at least WSL version 0.58.
-
-.PARAMETER Passthru
-Returns an object that represents the distribution. By default, this cmdlet does not generate any
-output.
-
-.INPUTS
-System.String
-
-You can pipe a string that contains a path to this cmdlet.
-
-.OUTPUTS
-WslDistribution
-
-The cmdlet returns an object that represent the distribution, if you use the Passthru parameter.
-Otherwise, this cmdlet does not generate any output.
-
-.EXAMPLE
-Import-WslDistribution D:\backup.tar.gz D:\wsl Ubuntu
-
-Imports the file named D:\backup.tar.gz as a distribution named "Ubuntu" stored in D:\wsl\Ubuntu.
-
-.EXAMPLE
-Import-WslDistribution D:\backup.tar.gz D:\wsl\mydistro Ubuntu -RawDestination
-
-Imports the file named D:\backup.tar.gz as a distribution named "Ubuntu" stored in D:\wsl\mydistro.
-
-.EXAMPLE
-Import-WslDistribution D:\backup\*.tar.gz D:\wsl
-
-Imports all .tar.gz files from D:\backup to distributions with names based on the file names, stored
-in subdirectories of D:\wsl.
-
-.EXAMPLE
-Import-WslDistribution D:\backup\*.vhdx D:\wsl -Vhd
-
-Imports all .vhdx files from D:\backup to distributions with names based on the file names, stored
-in subdirectories of D:\wsl. The Vhd parameter is required to indicate the input files are VHDs.
-
-.EXAMPLE
-Import-WslDistribution -InPlace D:\wsl\Ubuntu.vhdx
-
-Imports the file named D:\wsl\Ubuntu.vhdx as a distribution named "Ubuntu", using the file at its
-present location.
-
-.EXAMPLE
-Get-Item D:\backup\*.tar.gz -Exclude Ubuntu* | Import-WslDistribution -Destination D:\wsl -Version 2 -Passthru
-Name           State Version Default
-----           ----- ------- -------
-Alpine       Stopped       2   False
-Debian       Stopped       2   False
-
-Imports all .tar.gz files, except those whose names start with Ubuntu, as WSL2 distributions stored
-in subdirectories of D:\wsl.
+.EXTERNALHELP
+Wsl-help.xml
 #>
 function Import-WslDistribution
 {
@@ -959,105 +567,8 @@ function Import-WslDistribution
 }
 
 <#
-.SYNOPSIS
-Runs a command in one or more WSL distributions.
-
-.DESCRIPTION
-The Invoke-WslCommand cmdlet executes the specified command on the specified distributions, and
-then exits.
-
-This cmdlet will raise an error if executing wsl.exe failed (e.g. there is no distribution with
-the specified name) or if the command itself failed.
-
-The command to execute can be specified in two ways. The default is using the Command argument,
-which provides it as a single string that will be passed to /bin/sh to execute. Alternatively, you
-can use the RawCommand argument to use all remaining arguments which do not match an argument to
-this cmdlet as the command. You can use the -- separator to pass everything after to the WSL command.
-See the examples for an example of this usage.
-
-This cmdlet wraps the functionality of "wsl.exe <command>".
-
-.PARAMETER Command
-Specifies the command to run.
-
-.PARAMETER RawCommand
-Uses all remaining arguments to this cmdlet as the command to run.
-
-.PARAMETER DistributionName
-Specifies the distribution names of distributions to run the command in. Wildcards are permitted.
-By default, the command is executed in the default distribution.
-
-.PARAMETER Distribution
-Specifies WslDistribution objects that represent the distributions to run the command in.
-By default, the command is executed in the default distribution.
-
-.PARAMETER User
-Specifies the name of a user in the distribution to run the command as. By default, the
-distribution's default user is used.
-
-.PARAMETER WorkingDirectory
-Specifies the working directory to use for the command. Use "~" for the Linux user's home path. If
-the path starts with a "/" character, it will be interpreted as an absolute Linux path. Otherwise,
-the value must be a Windows path.
-
-.PARAMETER ShellType
-Specifies the shell type to use for the command, either "Standard", "Login", or "None". Note that if
-you are not using the RawCommand switch, the command is still executed using /bin/sh on top of the
-selected shell type.
-
-This parameter requires at least WSL version 0.64.1.
-
-.PARAMETER System
-Specifies that the command should be executed in the system distribution.
-
-This parameter requires at least WSL version 0.47.1.
-
-.PARAMETER Graphical
-Run the command using WSLg. Using this option prevents blocking the terminal while running GUI
-applications.
-
-This parameter requires at least WSL version 0.47.1.
-
-.PARAMETER Remaining
-Collects the remaining arguments for the RawCommand switch.
-
-.INPUTS
-WslDistribution, System.String
-
-You can pipe a WslDistribution object retrieved by Get-WslDistribution, or a string that contains
-the distribution name to this cmdlet.
-
-.OUTPUTS
-System.String
-
-This command outputs the result of the command you executed, as text.
-
-.EXAMPLE
-Invoke-WslCommand 'ls /etc'
-
-Runs a command in the default distribution.
-
-.EXAMPLE
-Invoke-WslCommand 'whoami' -DistributionName Ubuntu* -User root
-
-Runs a command in all distributions whose names start with Ubuntu, as the "root" user.
-
-.EXAMPLE
-Get-WslDistribution -Version 2 | Invoke-WslCommand 'echo $(whoami) in $WSL_DISTRO_NAME'
-
-Runs a command in all WSL2 distributions.
-
-.EXAMPLE
-Invoke-WslCommand -RawCommand echo Hello, $`(whoami`)
-
-Uses the remaining arguments as the command. Characters that would be interpreted by PowerShell need
-to be escaped.
-
-.EXAMPLE
-Invoke-WslCommand -RawCommand -- ls -u
-
-Uses the remaining arguments as the command. The -- separator makes sure the -u token is part of the
-command, and not interpreted by PowerShell as an alias for the User argument.
+.EXTERNALHELP
+Wsl-help.xml
 #>
 function Invoke-WslCommand
 {
@@ -1168,68 +679,8 @@ function Invoke-WslCommand
 }
 
 <#
-.SYNOPSIS
-Enters a session in a WSL distribution.
-
-.DESCRIPTION
-The Enter-WslDistribution cmdlet starts an interactive shell in the specified distribution.
-
-This cmdlet will raise an error if executing wsl.exe failed (e.g. there is no distribution with
-the specified name) or if the session exited with an error code.
-
-This cmdlet wraps the functionality of "wsl.exe" with no arguments other than possibly
-"--distribution" or "--user".
-
-.PARAMETER Name
-Specifies the name of the distribution to enter. Wildcards are NOT permitted.
-By default, the command enters the default distribution.
-
-.PARAMETER Distribution
-Specifies a WslDistribution object that represent the distributions to enter.
-By default, the command is executed in the default distribution.
-
-.PARAMETER User
-Specifies the name of a user in the distribution to enter as. By default, the
-distribution's default user is used.
-
-.PARAMETER WorkingDirectory
-Specifies the working directory to use for the session. Use "~" for the Linux user's home path. If
-the path starts with a "/" character, it will be interpreted as an absolute Linux path. Otherwise,
-the value must be a Windows path.
-
-.PARAMETER ShellType
-Specifies the shell type to use for the command, either "Standard" or "Login".
-
-This parameter requires at least WSL version 0.64.1.
-
-.PARAMETER System
-Specifies that the command should be executed in the system distribution.
-
-This parameter requires at least WSL version 0.47.1.
-
-.INPUTS
-WslDistribution, System.String
-
-You can pipe a WslDistribution object retrieved by Get-WslDistribution, or a string that contains
-the distribution name to this cmdlet.
-
-.OUTPUTS
-None. This cmdlet does not return any output.
-
-.EXAMPLE
-Enter-WslDistribution
-
-Start a shell in the default distribution.
-
-.EXAMPLE
-Enter-WslDistribution Ubuntu root
-
-Starts a shell in the distribution named "Ubuntu" using the "root" user.
-
-.EXAMPLE
-Import-WslDistribution D:\backup\Alpine.tar.gz D:\wsl -Passthru | Enter-WslDistribution
-
-Imports a WSL distribution and immediately opens a shell in that distribution.
+.EXTERNALHELP
+Wsl-help.xml
 #>
 function Enter-WslDistribution
 {
@@ -1294,25 +745,8 @@ function Enter-WslDistribution
 }
 
 <#
-.SYNOPSIS
-Stops all WSL distributions.
-
-.DESCRIPTION
-The Stop-Wsl cmdlet terminates all WSL distributions, and for WSL2 also shuts down the lightweight
-utility VM.
-
-This cmdlet wraps the functionality of "wsl.exe --shutdown".
-
-.INPUTS
-None. This cmdlet does not take any input.
-
-.OUTPUTS
-None. This cmdlet does not generate any output.
-
-.EXAMPLE
-Stop-Wsl
-
-Shuts down WSL.
+.EXTERNALHELP
+Wsl-help.xml
 #>
 function Stop-Wsl
 {
@@ -1325,43 +759,8 @@ function Stop-Wsl
 }
 
 <#
-.SYNOPSIS
-Returns version information about the Windows Subsystem for Linux.
-
-.DESCRIPTION
-Returns the version of the WSL store app, as well as other WSL components such as the Linux kernel
-and WSLg.
-
-The DefaultDistroVersion property of the returned object is not a version number, but instead
-indicates whether WSL1 or WSL2 will be used for newly created distributions that don't explicitly
-set their version.
-
-If WSL is not installed from the Microsoft store and the inbox version of WSL is used, all the
-versions will be $null, except for the Windows version and DefaultDistroVersion.
-
-This cmdlet wraps the functionality of "wsl.exe --version".
-
-.INPUTS
-None. This cmdlet does not take any input.
-
-.OUTPUTS
-WslVersionInfo
-
-The cmdlet returns an object whose properties represent the versions of WSL components.
-
-.EXAMPLE
-Get-WslVersion
-
-Wsl                  : 1.2.5.0
-Kernel               : 5.15.90.1
-WslG                 : 1.0.51
-Msrdc                : 1.2.3770
-Direct3D             : 1.608.2
-DXCore               : 10.0.25131.1002
-Windows              : 10.0.22621.2215
-DefaultDistroVersion : 2
-
-Gets WSL version information.
+.EXTERNALHELP
+Wsl-help.xml
 #>
 function Get-WslVersion
 {
