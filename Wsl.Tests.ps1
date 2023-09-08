@@ -132,9 +132,9 @@ Describe "WslManagementPS" {
 
         # Export single distro to file.
         $exported = Export-WslDistribution "wslps_test2" "TestDrive:/wslps_exported.tar.gz" -Passthru
-        Test-DistroEqual (Get-WslDistribution "wslps_test2") $exported
+        $exported.FullName | Should -Be "$TestDrive\wslps_exported.tar.gz"
         Test-Path "TestDrive:/wslps_exported.tar.gz" -PathType Leaf | Should -Be $true
-        (Get-Item "TestDrive:/wslps_exported.tar.gz").Length | Should -Not -Be (Get-Item (Get-WslDistribution "wslps_test2").VhdPath).Length
+        $exported.Length | Should -Not -Be (Get-Item (Get-WslDistribution "wslps_test2").VhdPath).Length
 
         # Export multiple distros using wildcards
         New-Item "TestDrive:/exported" -ItemType Container

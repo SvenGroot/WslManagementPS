@@ -78,15 +78,16 @@ Get-WslDistribution -Version 2 | Export-WslDistribution -Destination D:\backup -
 ```
 
 ```Output
-Name           State Version Default
-----           ----- ------- -------
-Ubuntu       Stopped       2    True
-Alpine       Stopped       2   False
+    Directory: C:\ubuntu
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a---            9/8/2023 12:51 PM        62914560 Alpine.vhdx
+-a---            9/8/2023 12:51 PM    171853217792 Ubuntu.vhdx
 ```
 
 This example exports all WSL2 distributions to a directory named `D:\backup`, using VHD format. It
-uses the **Passthru** parameter to return the WslDistribution objects for the affected
-distributions.
+uses the **Passthru** parameter to return the `System.IO.FileInfo` objects for the created files.
 
 ## PARAMETERS
 
@@ -170,8 +171,8 @@ Accept wildcard characters: True
 
 ### -Passthru
 
-Specifies that a WslDistribution object is to be passed through to the pipeline representing the
-distribution to be shutdown.
+Specifies that a `System.IO.FileInfo` object is to be passed through to the pipeline for each
+exported file.
 
 ```yaml
 Type: SwitchParameter
@@ -184,6 +185,7 @@ Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
+
 ### -Confirm
 
 Prompts you for confirmation before running the cmdlet.
@@ -233,9 +235,9 @@ You can pipe a distribution name to this cmdlet.
 
 ## OUTPUTS
 
-### None by default; WslDistribution if PassThru is specified
+### None by default; System.IO.FileInfo if **PassThru** is specified
 
-See `Get-WslDistribution` for more information.
+The `FileInfo` object contains information about the exported file.
 
 ## NOTES
 

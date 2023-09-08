@@ -491,7 +491,7 @@ function Export-WslDistribution
             }
 
             if ($Passthru) {
-                $_
+                Get-Item -LiteralPath $fullPath
             }
         }
     }
