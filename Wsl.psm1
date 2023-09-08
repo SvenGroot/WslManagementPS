@@ -432,9 +432,7 @@ function Export-WslDistribution
         [Parameter(Mandatory = $true, Position = 1)]
         [string]$Destination,
         [Parameter(Mandatory = $false)]
-        [WslExportFormat]$Format = [WslExportFormat]::Auto,
-        [Parameter(Mandatory = $false)]
-        [Switch]$Passthru
+        [WslExportFormat]$Format = [WslExportFormat]::Auto
     )
 
     process
@@ -481,16 +479,13 @@ function Export-WslDistribution
             }
 
             $fullPath = Get-UnresolvedProviderPath $fullPath
-            if ($PSCmdlet.ShouldProcess("Name: $($_.Name), Path: $fullPath", "Export")) {
+            if ($PSCmdlet.ShouldProcess("Distribution: $($_.Name), Path: $fullPath", "Export")) {
                 $wslArgs = @("--export", $_.Name, $fullPath)
                 if ($vhd) {
                     $wslArgs += "--vhd"
                 }
 
                 Invoke-Wsl $wslArgs | Out-Null
-            }
-
-            if ($Passthru) {
                 Get-Item -LiteralPath $fullPath
             }
         }
@@ -532,9 +527,7 @@ function Import-WslDistribution
         [Switch]$RawDestination,
         [Parameter(Mandatory = $false, ParameterSetName = "Path")]
         [Parameter(Mandatory = $false, ParameterSetName = "LiteralPath")]
-        [WslExportFormat]$Format = [WslExportFormat]::Auto,
-        [Parameter(Mandatory = $false)]
-        [Switch]$Passthru
+        [WslExportFormat]$Format = [WslExportFormat]::Auto
     )
 
     process {
@@ -564,6 +557,7 @@ function Import-WslDistribution
             if ($InPlace) {
                 if ($PSCmdlet.ShouldProcess("Path: $($_.FullName) (in place), Name: $distributionName", "Import")) {
                     Invoke-Wsl @("--import-in-place", $distributionName, $_.FullName) | Out-Null
+                    Get-WslDistribution $DistributionName
                 }
     
             } else {
@@ -584,11 +578,8 @@ function Import-WslDistribution
                     }
 
                     Invoke-Wsl $wslArgs | Out-Null
+                    Get-WslDistribution $DistributionName
                 }
-            }
-
-            if ($Passthru) {
-                Get-WslDistribution $DistributionName
             }
         }
     }

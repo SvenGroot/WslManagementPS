@@ -17,27 +17,27 @@ Imports a WSL distribution from a .tar.gz or VHD file.
 
 ```
 Import-WslDistribution [-Path] <String[]> [-Destination] <String> [[-Name] <String>] [[-Version] <Int32>]
- [-RawDestination] [-Format <WslExportFormat>] [-Passthru] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-RawDestination] [-Format <WslExportFormat>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### LiteralPath
 
 ```
 Import-WslDistribution -LiteralPath <String[]> [-Destination] <String> [[-Name] <String>] [[-Version] <Int32>]
- [-RawDestination] [-Format <WslExportFormat>] [-Passthru] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-RawDestination] [-Format <WslExportFormat>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### LiteralPathInPlace
 
 ```
-Import-WslDistribution [-InPlace] -LiteralPath <String[]> [[-Name] <String>] [-Passthru] [-WhatIf] [-Confirm]
+Import-WslDistribution [-InPlace] -LiteralPath <String[]> [[-Name] <String>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
 ### PathInPlace
 
 ```
-Import-WslDistribution [-InPlace] [-Path] <String[]> [[-Name] <String>] [-Passthru] [-WhatIf] [-Confirm]
+Import-WslDistribution [-InPlace] [-Path] <String[]> [[-Name] <String>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
@@ -63,6 +63,12 @@ This cmdlet wraps the functionality of `wsl.exe --import`.
 Import-WslDistribution D:\backup.tar.gz D:\wsl "Ubuntu"
 ```
 
+```Output
+Name           State Version Default
+----           ----- ------- -------
+Ubuntu       Stopped       2   False
+```
+
 This example imports the file named `D:\backup.tar.gz` as a distribution named "Ubuntu", whose
 filesystem will be stored in the directory `D:\wsl\Ubuntu`.
 
@@ -70,6 +76,12 @@ filesystem will be stored in the directory `D:\wsl\Ubuntu`.
 
 ```powershell
 Import-WslDistribution D:\backup.tar.gz D:\wsl\mydistro "Ubuntu" -RawDestination
+```
+
+```Output
+Name           State Version Default
+----           ----- ------- -------
+Ubuntu       Stopped       2   False
 ```
 
 This example imports the file named `D:\backup.tar.gz` as a distribution named "Ubuntu", whose file
@@ -82,6 +94,14 @@ to this path because the RawDestination parameter was used.
 Import-WslDistribution D:\backup\*.tar.gz D:\wsl
 ```
 
+```Output
+Name           State Version Default
+----           ----- ------- -------
+Alpine       Stopped       2   False
+Debian       Stopped       2   False
+Ubuntu       Stopped       2   False
+```
+
 This example imports all .tar.gz files from `D:\backup`, using the base name of each file as the name
 of the distribution. Each distribution will be stored in a separate subdirectory of `D:\wsl`.
 
@@ -91,34 +111,41 @@ of the distribution. Each distribution will be stored in a separate subdirectory
 Import-WslDistribution D:\backup\*.vhdx D:\wsl
 ```
 
+```Output
+Name           State Version Default
+----           ----- ------- -------
+Alpine       Stopped       2   False
+Debian       Stopped       2   False
+Ubuntu       Stopped       2   False
+```
+
 This example imports all .vhdx files from `D:\backup`, using the base name of each file as the name
 of the distribution. Each VHD file will be copied to a separate subdirectory of `D:\wsl`.
 
 ### EXAMPLE 5
 
 ```powershell
-Import-WslDistribution -InPlace D:\wsl\Ubuntu.vhdx
+Import-WslDistribution -InPlace D:\wsl\Ubuntu.vhdx | Set-WslDistribution -Default
 ```
 
 This example imports the file named `D:\wsl\Ubuntu.vhdx` as a distribution named "Ubuntu", using the
-file at its present location.
+file at its present location. It then makes the new distribution the default distribution.
 
 ### EXAMPLE 6
 
 ```powershell
-Get-Item D:\backup\*.tar.gz -Exclude "Ubuntu*" | Import-WslDistribution -Destination D:\wsl -Version 2 -Passthru
+Get-Item D:\backup\*.tar.gz -Exclude "Ubuntu*" | Import-WslDistribution -Destination D:\wsl -Version 1
 ```
 
 ```Output
 Name           State Version Default
 ----           ----- ------- -------
-Alpine       Stopped       2   False
-Debian       Stopped       2   False
+Alpine       Stopped       1   False
+Debian       Stopped       1   False
 ```
 
-This example imports all .tar.gz files, except those whose names start with Ubuntu, as WSL2
-distributions stored in subdirectories of `D:\wsl`. It uses the Passthru parameter to return the
-WslDistribution objects for the imported distributions.
+This example imports all .tar.gz files, except those whose names start with Ubuntu, as WSL1
+distributions stored in subdirectories of `D:\wsl`.
 
 ## PARAMETERS
 
@@ -215,23 +242,6 @@ Aliases:
 Required: False
 Position: 3
 Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Passthru
-
-Specifies that a WslDistribution object is to be passed through to the pipeline representing the
-distribution to be shutdown.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
@@ -336,9 +346,7 @@ You can pipe a string that contains a path to this cmdlet.
 
 ### WslDistribution
 
-### None by default; WslDistribution if PassThru is specified
-
-See `Get-WslDistribution` for more information.
+An object representing the imported distribution. See `Get-WslDistribution` for more information.
 
 ## NOTES
 

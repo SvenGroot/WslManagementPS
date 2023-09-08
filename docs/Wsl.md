@@ -2,7 +2,7 @@
 Module Name: Wsl
 Module Guid: 5aebb9a8-dbf6-44d3-8c6c-dc343d4e3f0a
 Download Help Link: 
-Help Version: 1.1.0.0
+Help Version: 2.0.0.0
 Locale: en-US
 ---
 

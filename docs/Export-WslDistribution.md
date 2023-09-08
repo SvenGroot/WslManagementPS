@@ -16,15 +16,15 @@ Exports a WSL distribution to a .tar.gz or VHD file.
 ### DistributionName
 
 ```
-Export-WslDistribution [-Name] <String[]> [-Destination] <String> [-Format <WslExportFormat>] [-Passthru]
- [-WhatIf] [-Confirm] [<CommonParameters>]
+Export-WslDistribution [-Name] <String[]> [-Destination] <String> [-Format <WslExportFormat>] [-WhatIf]
+ [-Confirm] [<CommonParameters>]
 ```
 
 ### Distribution
 
 ```
 Export-WslDistribution -Distribution <WslDistribution[]> [-Destination] <String> [-Format <WslExportFormat>]
- [-Passthru] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -50,12 +50,28 @@ This cmdlet wraps the functionality of `wsl.exe --export`.
 Export-WslDistribution "Ubuntu" D:\backup.tar.gz
 ```
 
+```Output
+    Directory: D:\
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a---            9/8/2023  2:56 PM   156843008000 backup.tar.gz
+```
+
 This example exports the distribution named "Ubuntu" to a file named `D:\backup.tar.gz`.
 
 ### EXAMPLE 2
 
 ```powershell
 Export-WslDistribution "Ubuntu" D:\backup.vhdx
+```
+
+```Output
+    Directory: D:\
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a---            9/8/2023 12:51 PM    171853217792 backup.vhdx
 ```
 
 This example exports the distribution named "Ubuntu" to a file named `D:\backup.vhdx` which is a
@@ -68,17 +84,26 @@ New-Item D:\backup -ItemType Directory
 Export-WslDistribution "Ubuntu*" D:\backup
 ```
 
-This example exports all distributions whose name starts with Ubuntu to a directory named `D:\backup`.
-Separate .tar.gz files will be created for each distribution.
+```Output
+    Directory: D:\backup
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a---            9/8/2023  2:56 PM   156843008000 Ubuntu.tar.gz
+-a---            9/8/2023  2:56 PM     1336043520 Ubuntu-22.04.tar.gz
+```
+
+This example exports all distributions whose name starts with Ubuntu to a directory named
+`D:\backup`. Separate .tar.gz files will be created for each distribution.
 
 ### EXAMPLE 4
 
 ```powershell
-Get-WslDistribution -Version 2 | Export-WslDistribution -Destination D:\backup -Format "Vhd" -Passthru
+Get-WslDistribution -Version 2 | Export-WslDistribution -Destination D:\backup -Format "Vhd"
 ```
 
 ```Output
-    Directory: C:\ubuntu
+    Directory: D:\backup
 
 Mode                 LastWriteTime         Length Name
 ----                 -------------         ------ ----
@@ -86,8 +111,7 @@ Mode                 LastWriteTime         Length Name
 -a---            9/8/2023 12:51 PM    171853217792 Ubuntu.vhdx
 ```
 
-This example exports all WSL2 distributions to a directory named `D:\backup`, using VHD format. It
-uses the **Passthru** parameter to return the `System.IO.FileInfo` objects for the created files.
+This example exports all WSL2 distributions to a directory named `D:\backup`, using VHD format.
 
 ## PARAMETERS
 
@@ -169,23 +193,6 @@ Accept pipeline input: True (ByValue)
 Accept wildcard characters: True
 ```
 
-### -Passthru
-
-Specifies that a `System.IO.FileInfo` object is to be passed through to the pipeline for each
-exported file.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### -Confirm
 
 Prompts you for confirmation before running the cmdlet.
@@ -235,7 +242,7 @@ You can pipe a distribution name to this cmdlet.
 
 ## OUTPUTS
 
-### None by default; System.IO.FileInfo if **PassThru** is specified
+### System.IO.FileInfo
 
 The `FileInfo` object contains information about the exported file.
 

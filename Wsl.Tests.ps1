@@ -113,7 +113,7 @@ Describe "WslManagementPS" {
 
     # A bunch of the below tests depend on this one, so if this one fails, expect more to fail.
     It "Can import and export distributions" {
-        $distro = Import-WslDistribution $testDistroFile -Destination "TestDrive:/wsl" -Version 1 -Passthru
+        $distro = Import-WslDistribution $testDistroFile -Destination "TestDrive:/wsl" -Version 1
         Test-Distro $distro "wslps_test" 1 "Stopped" -Default
         Test-DistroEqual $distro (Get-WslDistribution "wslps_test")
 
@@ -121,24 +121,24 @@ Describe "WslManagementPS" {
         { Import-WslDistribution $testDistroFile -Destination "TestDrive:/" -Version 1 } | Should -Throw
 
         # Specific name
-        $distro = Import-WslDistribution $testDistroFile -Name "wslps_test2" -Destination "TestDrive:/wsl" -Version 2 -Passthru
+        $distro = Import-WslDistribution $testDistroFile -Name "wslps_test2" -Destination "TestDrive:/wsl" -Version 2
         Test-Distro $distro "wslps_test2" 2 "Stopped"
         Test-DistroEqual $distro (Get-WslDistribution "wslps_test2")
         # Raw destination
         New-Item "TestDrive:/wsl/raw" -ItemType Directory
-        $distro = Import-WslDistribution $testDistroFile -Name "wslps_raw" -Destination "TestDrive:/wsl/raw" -RawDestination -Version 2 -Passthru
+        $distro = Import-WslDistribution $testDistroFile -Name "wslps_raw" -Destination "TestDrive:/wsl/raw" -RawDestination -Version 2
         Test-Distro $distro "wslps_raw" 2 "Stopped" "$TestDrive\wsl\raw"
         Test-DistroEqual $distro (Get-WslDistribution "wslps_raw")
 
         # Export single distro to file.
-        $exported = Export-WslDistribution "wslps_test2" "TestDrive:/wslps_exported.tar.gz" -Passthru
+        $exported = Export-WslDistribution "wslps_test2" "TestDrive:/wslps_exported.tar.gz"
         $exported.FullName | Should -Be "$TestDrive\wslps_exported.tar.gz"
         Test-Path "TestDrive:/wslps_exported.tar.gz" -PathType Leaf | Should -Be $true
         $exported.Length | Should -Not -Be (Get-Item (Get-WslDistribution "wslps_test2").VhdPath).Length
 
         # Export multiple distros using wildcards
         New-Item "TestDrive:/exported" -ItemType Container
-        Export-WslDistribution "wslps_test*" "TestDrive:/exported"
+        Export-WslDistribution "wslps_test*" "TestDrive:/exported" | Out-Null
         Test-Path "TestDrive:/exported/wslps_test.tar.gz" -PathType Leaf | Should -Be $true
         Test-Path "TestDrive:/exported/wslps_test2.tar.gz" -PathType Leaf | Should -Be $true
         (Get-Item "TestDrive:/exported/wslps_test2.tar.gz").Length | Should -Not -Be (Get-Item (Get-WslDistribution "wslps_test2").VhdPath).Length
@@ -157,13 +157,13 @@ Describe "WslManagementPS" {
         Remove-WslDistribution "wslps_test2","wslps_raw"
 
         # Import multiple distributions using pipeline
-        $distros = Get-ChildItem "TestDrive:/exported" | Import-WslDistribution -Destination "TestDrive:/wsl" -Version 2 -Passthru
+        $distros = Get-ChildItem "TestDrive:/exported" | Import-WslDistribution -Destination "TestDrive:/wsl" -Version 2
         $distros | Should -HaveCount 2
         Test-Distro $distros[0] "wslps_raw" 2 "Stopped"
         Test-Distro $distros[1] "wslps_test2" 2 "Stopped"
 
         # Use the default version
-        $distro = Import-WslDistribution $testDistroFile -Name wslps_default -Destination "TestDrive:/wsl" -Passthru
+        $distro = Import-WslDistribution $testDistroFile -Name wslps_default -Destination "TestDrive:/wsl"
         $version = Get-WslVersion
         Test-Distro $distro "wslps_default" $version.DefaultDistroVersion "Stopped"
         { Remove-WslDistribution "wslps_default" } | Should -Not -Throw
@@ -172,27 +172,30 @@ Describe "WslManagementPS" {
     It "Can import and export VHDs" -Skip:($wslVersion -lt ([Version]::new(0, 58))) {
         try {
             Stop-Wsl # Otherwise export may fail due to files in use.
-            Export-WslDistribution "wslps_test2" "TestDrive:/exported" -Format "Vhd"
+            $exported = Export-WslDistribution "wslps_test2" "TestDrive:/exported" -Format "Vhd"
+            $exported.FullName | Should -Be "$TestDrive\exported\wslps_test2.vhdx"
             "TestDrive:/exported/wslps_test2.vhdx" | Should -Exist
             $vhdSize = (Get-Item (Get-WslDistribution "wslps_test2").VhdPath).Length
-            (Get-Item "TestDrive:/exported/wslps_test2.vhdx").Length | Should -Be $vhdSize
+            $exported.Length | Should -Be $vhdSize
 
             # Auto export as VHD based on extension
-            Export-WslDistribution "wslps_test2" "TestDrive:/exported/test.vhdx"
-            (Get-Item "TestDrive:/exported/test.vhdx").Length | Should -Be $vhdSize
+            $exported = Export-WslDistribution "wslps_test2" "TestDrive:/exported/test.vhdx"
+            $exported.FullName | Should -Be "$TestDrive\exported\test.vhdx"
+            $exported.Length | Should -Be $vhdSize
 
             # -Format overrides extension.
-            Export-WslDistribution "wslps_test2" "TestDrive:/exported/test2.vhdx" -Format "Tar"
-            (Get-Item "TestDrive:/exported/test2.vhdx").Length | Should -Not -Be $vhdSize
+            $exported = Export-WslDistribution "wslps_test2" "TestDrive:/exported/test2.vhdx" -Format "Tar"
+            $exported.FullName | Should -Be "$TestDrive\exported\test2.vhdx"
+            $exported.Length | Should -Not -Be $vhdSize
 
             # Import VHDs
-            $distro = Import-WslDistribution "TestDrive:/exported/wslps_test2.vhdx" "TestDrive:/wsl" "wslps_vhd1" -Passthru
+            $distro = Import-WslDistribution "TestDrive:/exported/wslps_test2.vhdx" "TestDrive:/wsl" "wslps_vhd1"
             Test-Distro $distro "wslps_vhd1" 2 "Stopped"
-            $distro = Import-WslDistribution -InPlace "TestDrive:/exported/wslps_test2.vhdx" "wslps_vhd2" -Passthru
+            $distro = Import-WslDistribution -InPlace "TestDrive:/exported/wslps_test2.vhdx" "wslps_vhd2"
             Test-Distro $distro "wslps_vhd2" 2 "Stopped" "$TestDrive\exported" "wslps_test2.vhdx"
 
             # -Format overrides extension on import
-            $distro = Import-WslDistribution "TestDrive:/exported/test2.vhdx" "TestDrive:/wsl" "wslps_vhd3" -Format "tar" -Passthru
+            $distro = Import-WslDistribution "TestDrive:/exported/test2.vhdx" "TestDrive:/wsl" "wslps_vhd3" -Format "tar"
             Test-Distro $distro "wslps_vhd3" 2 "Stopped"
 
         } finally {
