@@ -197,6 +197,9 @@ The cmdlet returns objects that represent the distributions on the computer.
 - `FileSystemPath`: The path to use to access the distribution's file system, in the form `\\wsl.localhost\distro`.
 - `VhdPath`: For WSL2 distributions, the path to the VHD file containing the distribution's file system.
 
+The `Guid`, `BasePath`, and `VhdPath` properties will be `$null` if this cmdlet was invoked from
+inside a WSL distribution.
+
 ## NOTES
 
 ## RELATED LINKS

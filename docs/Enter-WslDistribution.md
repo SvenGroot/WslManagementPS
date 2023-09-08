@@ -1,67 +1,77 @@
 ---
 external help file: Wsl-help.xml
 Module Name: Wsl
-online version:
+online version: https://github.com/SvenGroot/WslManagementPS/blob/main/docs/Enter-WslDistribution.md
 schema: 2.0.0
 ---
 
 # Enter-WslDistribution
 
 ## SYNOPSIS
-Enters a session in a WSL distribution.
+
+Starts an interactive session in a WSL distribution.
 
 ## SYNTAX
 
 ### DistributionName
+
 ```
 Enter-WslDistribution [[-Name] <String>] [[-User] <String>] [-WorkingDirectory <String>] [-ShellType <String>]
  [-System] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Distribution
+
 ```
 Enter-WslDistribution -Distribution <WslDistribution> [[-User] <String>] [-WorkingDirectory <String>]
  [-ShellType <String>] [-System] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-The Enter-WslDistribution cmdlet starts an interactive shell in the specified distribution.
 
-This cmdlet will raise an error if executing wsl.exe failed (e.g.
-there is no distribution with
-the specified name) or if the session exited with an error code.
+The `Enter-WslDistribution` cmdlet starts an interactive shell in a WSL distribution. During the
+session, all commands that you type run inside the WSL distribution. You can have only one
+interactive session at a time.
 
-This cmdlet wraps the functionality of "wsl.exe" with no arguments other than possibly
-"--distribution" or "--user".
+The distribution to enter can be specified by name, or piped in from the `Get-WslDistribution`
+cmdlet. If no distribution is specifies, the default distribution will be used.
+
+This cmdlet will throw an exception if executing wsl.exe failed (e.g. if there is no distribution
+with the specified name), or if the session exited with an error code.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
-```
+
+```powershell
 Enter-WslDistribution
 ```
 
-Start a shell in the default distribution.
+This example starts a shell in the default distribution.
 
 ### EXAMPLE 2
-```
-Enter-WslDistribution Ubuntu root
+
+```powershell
+Enter-WslDistribution Ubuntu root -WorkingDirectory ~
 ```
 
-Starts a shell in the distribution named "Ubuntu" using the "root" user.
+This example starts a shell in the distribution named "Ubuntu", using the "root" user. The starting
+directory will be the Linux user's home directory.
 
 ### EXAMPLE 3
-```
+
+```powershell
 Import-WslDistribution D:\backup\Alpine.tar.gz D:\wsl -Passthru | Enter-WslDistribution
 ```
 
-Imports a WSL distribution and immediately opens a shell in that distribution.
+This example imports a WSL distribution, and immediately starts an interactive session in that
+distribution.
 
 ## PARAMETERS
 
 ### -Distribution
-Specifies a WslDistribution object that represent the distributions to enter.
-By default, the command is executed in the default distribution.
+
+Specifies the distribution to be enter.
 
 ```yaml
 Type: WslDistribution
@@ -76,9 +86,9 @@ Accept wildcard characters: False
 ```
 
 ### -Name
-Specifies the name of the distribution to enter.
-Wildcards are NOT permitted.
-By default, the command enters the default distribution.
+
+Specifies the name of a distribution to be enter. Unlike with other cmdlets in this module, this
+parameter does not accept wildcards.
 
 ```yaml
 Type: String
@@ -93,7 +103,8 @@ Accept wildcard characters: False
 ```
 
 ### -ShellType
-Specifies the shell type to use for the command, either "Standard" or "Login".
+
+Specifies the shell type to use for the interactive session, either `Standard` or `Login`.
 
 This parameter requires at least WSL version 0.64.1.
 
@@ -110,7 +121,8 @@ Accept wildcard characters: False
 ```
 
 ### -System
-Specifies that the command should be executed in the system distribution.
+
+Specifies that the interactive session should use the system distribution.
 
 This parameter requires at least WSL version 0.47.1.
 
@@ -127,9 +139,8 @@ Accept wildcard characters: False
 ```
 
 ### -User
-Specifies the name of a user in the distribution to enter as.
-By default, the
-distribution's default user is used.
+
+Run the interactive session as the specified Linux user.
 
 ```yaml
 Type: String
@@ -144,11 +155,9 @@ Accept wildcard characters: False
 ```
 
 ### -WorkingDirectory
-Specifies the working directory to use for the session.
-Use "~" for the Linux user's home path.
-If
-the path starts with a "/" character, it will be interpreted as an absolute Linux path.
-Otherwise,
+
+Specifies the working directory to use for the session. Use `~` for the Linux user's home path. If
+the path starts with a `/` character, it will be interpreted as an absolute Linux path. Otherwise,
 the value must be a Windows path.
 
 ```yaml
@@ -164,6 +173,7 @@ Accept wildcard characters: False
 ```
 
 ### -Confirm
+
 Prompts you for confirmation before running the cmdlet.
 
 ```yaml
@@ -179,6 +189,7 @@ Accept wildcard characters: False
 ```
 
 ### -WhatIf
+
 Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
@@ -195,16 +206,23 @@ Accept wildcard characters: False
 ```
 
 ### CommonParameters
+
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### WslDistribution, System.String
-### You can pipe a WslDistribution object retrieved by Get-WslDistribution, or a string that contains
-### the distribution name to this cmdlet.
+### WslDistribution
+
+You can pipe an object retrieved by `Get-WslDistribution` to this cmdlet.
+
+### System.String
+
+You can pipe a distribution name to this cmdlet.
+
 ## OUTPUTS
 
-### None. This cmdlet does not return any output.
 ## NOTES
 
 ## RELATED LINKS
+
+[Get-WslDistribution](Get-WslDistribution.md)

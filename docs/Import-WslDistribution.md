@@ -1,114 +1,136 @@
 ---
 external help file: Wsl-help.xml
 Module Name: Wsl
-online version:
+online version: https://github.com/SvenGroot/WslManagementPS/blob/main/docs/Import-WslDistribution.md
 schema: 2.0.0
 ---
 
 # Import-WslDistribution
 
 ## SYNOPSIS
-Imports one or more WSL distributions from a .tar.gz or VHD file.
+
+Imports a WSL distribution from a .tar.gz or VHD file.
 
 ## SYNTAX
 
 ### LiteralPathInPlace
+
 ```
 Import-WslDistribution [-InPlace] -LiteralPath <String[]> [[-Name] <String>] [-Passthru] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
 ### PathInPlace
+
 ```
 Import-WslDistribution [-InPlace] [-Path] <String[]> [[-Name] <String>] [-Passthru] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
 ### Path
+
 ```
 Import-WslDistribution [-Path] <String[]> [-Destination] <String> [[-Name] <String>] [[-Version] <Int32>]
  [-RawDestination] [-Vhd] [-Passthru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### LiteralPath
+
 ```
 Import-WslDistribution -LiteralPath <String[]> [-Destination] <String> [[-Name] <String>] [[-Version] <Int32>]
  [-RawDestination] [-Vhd] [-Passthru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-The Import-WslDistribution cmdlet imports each of the specified gzipped tarball files to a WSL
-distribution.
-to a gzipped.
 
-By default, this cmdlet derives the distribution name from the input file name, and appends that
-name to the destination path.
-This allows you to import multiple distributions.
+The `Import-WslDistribution` cmdlet imports a WSL distribution that was previously exported to a
+gzipped tarball or VHD file, for example using the `Export-WslDistribution` cmdlet.
 
-This cmdlet wraps the functionality of "wsl.exe --import".
+If you do not specify a distribution name, the name is derived from the input file name. For example,
+a file named "Ubuntu.tar.gz" would be imported to a distribution named "Ubuntu".
+
+A directory with the name of the distribution is created as a child of the path specified using the
+Destination parameter, unless the RawDestination parameter is used. This allows multiple
+distributions to be imported using a single command.
+
+This cmdlet wraps the functionality of `wsl.exe --import`.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
-```
-Import-WslDistribution D:\backup.tar.gz D:\wsl Ubuntu
+
+```powershell
+Import-WslDistribution D:\backup.tar.gz D:\wsl "Ubuntu"
 ```
 
-Imports the file named D:\backup.tar.gz as a distribution named "Ubuntu" stored in D:\wsl\Ubuntu.
+This example imports the file named D:\backup.tar.gz as a distribution named "Ubuntu", whose
+filesystem will be stored in the directory D:\wsl\Ubuntu.
 
 ### EXAMPLE 2
-```
-Import-WslDistribution D:\backup.tar.gz D:\wsl\mydistro Ubuntu -RawDestination
+
+```powershell
+Import-WslDistribution D:\backup.tar.gz D:\wsl\mydistro "Ubuntu" -RawDestination
 ```
 
-Imports the file named D:\backup.tar.gz as a distribution named "Ubuntu" stored in D:\wsl\mydistro.
+This example imports the file named D:\backup.tar.gz as a distribution named "Ubuntu", whose file
+system will be stored in the directory D:\wsl\mydistro. The name of the distribution is not appended
+to this path because the RawDestination parameter was used.
 
 ### EXAMPLE 3
-```
+
+```powershell
 Import-WslDistribution D:\backup\*.tar.gz D:\wsl
 ```
 
-Imports all .tar.gz files from D:\backup to distributions with names based on the file names, stored
-in subdirectories of D:\wsl.
+This example imports all .tar.gz files from D:\backup, using the base name of each file as the name
+of the distribution. Each distribution will be stored in a separate subdirectory of D:\wsl.
 
 ### EXAMPLE 4
-```
+
+```powershell
 Import-WslDistribution D:\backup\*.vhdx D:\wsl -Vhd
 ```
 
-Imports all .vhdx files from D:\backup to distributions with names based on the file names, stored
-in subdirectories of D:\wsl.
+This example imports all .vhdx files from D:\backup, using the base name of each file as the name
+of the distribution. Each VHD file will be copied to a separate subdirectory of D:\wsl.
+
 The Vhd parameter is required to indicate the input files are VHDs.
 
 ### EXAMPLE 5
-```
+
+```powershell
 Import-WslDistribution -InPlace D:\wsl\Ubuntu.vhdx
 ```
 
-Imports the file named D:\wsl\Ubuntu.vhdx as a distribution named "Ubuntu", using the file at its
-present location.
+This example imports the file named D:\wsl\Ubuntu.vhdx as a distribution named "Ubuntu", using the
+file at its present location.
 
 ### EXAMPLE 6
+
+```powershell
+Get-Item D:\backup\*.tar.gz -Exclude "Ubuntu*" | Import-WslDistribution -Destination D:\wsl -Version 2 -Passthru
 ```
-Get-Item D:\backup\*.tar.gz -Exclude Ubuntu* | Import-WslDistribution -Destination D:\wsl -Version 2 -Passthru
+
+```Output
 Name           State Version Default
 ----           ----- ------- -------
 Alpine       Stopped       2   False
 Debian       Stopped       2   False
 ```
 
-Imports all .tar.gz files, except those whose names start with Ubuntu, as WSL2 distributions stored
-in subdirectories of D:\wsl.
+This example imports all .tar.gz files, except those whose names start with Ubuntu, as WSL2
+distributions stored in subdirectories of D:\wsl. It uses the Passthru parameter to return the
+WslDistribution objects for the imported distributions.
 
 ## PARAMETERS
 
 ### -Destination
-Specifies the destination directory or file name where the imported distribution will be stored.
-The
-distribution name will be appended to this path (e.g.
-if you specify "D:\wsl" and the distribution
-is named "Ubuntu", the distribution will be stored in "D:\wsl\Ubuntu"), unless the RawDestination
-parameter is specified.
+
+Specifies the destination directory or file name where the file system for the imported distribution
+will be stored.
+
+Unless the RawDestination parameter is used, the name of the distribution will be appended to this
+path.
 
 ```yaml
 Type: String
@@ -123,9 +145,9 @@ Accept wildcard characters: False
 ```
 
 ### -InPlace
-Registers the specified file as a WSL distribution in its current location, without copying it.
-The
-input must be a .vhdx file when importing in place.
+
+Specifies that the new distribution should use the input file in its current location, without
+copying it. The input must be a .vhdx file when importing in place.
 
 This parameter requires at least WSL version 0.58.
 
@@ -142,10 +164,9 @@ Accept wildcard characters: False
 ```
 
 ### -LiteralPath
-Specifies the path to a .tar.gz or .vhdx file to import.
-The value of LiteralPath is used exactly as
-it is typed.
-No characters are interpreted as wildcards.
+
+Specifies the path to a .tar.gz or .vhdx file to import. The value of **LiteralPath** is used exactly
+as it is typed. No characters are interpreted as wildcards.
 
 ```yaml
 Type: String[]
@@ -160,16 +181,11 @@ Accept wildcard characters: False
 ```
 
 ### -Name
+
 Specifies the name of the imported WSL distribution.
 
-By default, this cmdlet uses the base name of the file being imported (e.g.
-"Ubuntu" if the file
-is "Ubuntu.tar.gz").
-Note that distribution names can only contain letters, numbers, dashes and
-underscores.
-If the file contains any other characters, you must specify a distribution name.
-
-If you specify a distribution name, you cannot import multiple distributions with one command.
+If you specify am explicit distribution name, you cannot import multiple distributions with a single
+command.
 
 ```yaml
 Type: String
@@ -184,9 +200,9 @@ Accept wildcard characters: False
 ```
 
 ### -Passthru
-Returns an object that represents the distribution.
-By default, this cmdlet does not generate any
-output.
+
+Specifies that a WslDistribution object is to be passed through to the pipeline representing the
+distribution to be shutdown.
 
 ```yaml
 Type: SwitchParameter
@@ -201,8 +217,8 @@ Accept wildcard characters: False
 ```
 
 ### -Path
-Specifies the path to a .tar.gz or .vhdx file to import.
-Wildcards are permitted.
+
+Specifies the path to a .tar.gz or .vhdx file to import. Wildcard characters are permitted.
 
 ```yaml
 Type: String[]
@@ -217,11 +233,11 @@ Accept wildcard characters: True
 ```
 
 ### -RawDestination
-Indicates that the destination path should be used as is, without appending the distribution name
-to it.
-By default, the distribution name is appended to the path.
 
-If RawDestination is specified, you cannot import multiple distributions with one command.
+Specifies that the **Destination** path should be used as is, without appending the distribution
+name to it.
+
+If **RawDestination** is specified, you cannot import multiple distributions with one command.
 
 ```yaml
 Type: SwitchParameter
@@ -236,9 +252,10 @@ Accept wildcard characters: False
 ```
 
 ### -Version
-Specifies the WSL version to use for the imported distribution.
-By default, this cmdlet uses the
-version set with "wsl.exe --set-default-version".
+
+Specifies the distribution version to use for the imported distribution, either 1 or 2.
+
+If omitted, the currently configured default distribution version is used.
 
 ```yaml
 Type: Int32
@@ -253,7 +270,8 @@ Accept wildcard characters: False
 ```
 
 ### -Vhd
-Indicates that the input file is a .vhdx file that will be copied to the destination.
+
+Specifies that the input file is a .vhdx file that will be copied to the destination.
 
 This parameter requires at least WSL version 0.58.
 
@@ -270,6 +288,7 @@ Accept wildcard characters: False
 ```
 
 ### -Confirm
+
 Prompts you for confirmation before running the cmdlet.
 
 ```yaml
@@ -285,6 +304,7 @@ Accept wildcard characters: False
 ```
 
 ### -WhatIf
+
 Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
@@ -301,17 +321,23 @@ Accept wildcard characters: False
 ```
 
 ### CommonParameters
+
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
 ### System.String
-### You can pipe a string that contains a path to this cmdlet.
+
+You can pipe a string that contains a path to this cmdlet.
+
 ## OUTPUTS
 
 ### WslDistribution
-### The cmdlet returns an object that represent the distribution, if you use the Passthru parameter.
-### Otherwise, this cmdlet does not generate any output.
+
+### None by default; WslDistribution if PassThru is specified
+
+See `Get-WslDistribution` for more information.
+
 ## NOTES
 
 ## RELATED LINKS

@@ -1,14 +1,15 @@
 ---
 external help file: Wsl-help.xml
 Module Name: Wsl
-online version:
+online version: https://github.com/SvenGroot/WslManagementPS/blob/main/docs/Get-WslVersion.md
 schema: 2.0.0
 ---
 
 # Get-WslVersion
 
 ## SYNOPSIS
-Returns version information about the Windows Subsystem for Linux.
+
+Gets version information about the Windows Subsystem for Linux and its components.
 
 ## SYNTAX
 
@@ -17,25 +18,28 @@ Get-WslVersion
 ```
 
 ## DESCRIPTION
-Returns the version of the WSL store app, as well as other WSL components such as the Linux kernel
-and WSLg.
 
-The DefaultDistroVersion property of the returned object is not a version number, but instead
-indicates whether WSL1 or WSL2 will be used for newly created distributions that don't explicitly
-set their version.
+The `Get-WslVersion` cmdlet gets the version of the WSL store app, as well as other WSL components
+such as the Linux kernel and WSLg.
 
-If WSL is not installed from the Microsoft store and the inbox version of WSL is used, all the
-versions will be $null, except for the Windows version and DefaultDistroVersion.
+The returned information includes the default distribution version, which is not a version number,
+but a number that indicates whether WSL1 or WSL2 is used by default for newly registered
+distributions.
 
-This cmdlet wraps the functionality of "wsl.exe --version".
+If WSL is not installed from the Microsoft store, and the inbox version of WSL is used, all the
+versions will be `$null`, except for the Windows version and DefaultDistroVersion.
+
+This cmdlet wraps the functionality of `wsl.exe --version`.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
-```
+
+```powershell
 Get-WslVersion
 ```
 
+```Output
 Wsl                  : 1.2.5.0
 Kernel               : 5.15.90.1
 WslG                 : 1.0.51
@@ -44,18 +48,20 @@ Direct3D             : 1.608.2
 DXCore               : 10.0.25131.1002
 Windows              : 10.0.22621.2215
 DefaultDistroVersion : 2
+```
 
-Gets WSL version information.
+This example gets information about the installed version of WSL.
 
 ## PARAMETERS
 
 ## INPUTS
 
-### None. This cmdlet does not take any input.
 ## OUTPUTS
 
 ### WslVersionInfo
-### The cmdlet returns an object whose properties represent the versions of WSL components.
+
+The cmdlet returns an object whose properties represent the versions of WSL components.
+
 ## NOTES
 
 ## RELATED LINKS

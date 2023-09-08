@@ -1,93 +1,110 @@
 ---
 external help file: Wsl-help.xml
 Module Name: Wsl
-online version:
+online version: https://github.com/SvenGroot/WslManagementPS/blob/main/docs/Export-WslDistribution.md
 schema: 2.0.0
 ---
 
 # Export-WslDistribution
 
 ## SYNOPSIS
-Exports one or more WSL distributions to a .tar.gz or VHD file.
+
+Exports a WSL distribution to a .tar.gz or VHD file.
 
 ## SYNTAX
 
 ### DistributionName
+
 ```
 Export-WslDistribution [-Name] <String[]> [-Destination] <String> [-Vhd] [-Passthru] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
 ### Distribution
+
 ```
 Export-WslDistribution -Distribution <WslDistribution[]> [-Destination] <String> [-Vhd] [-Passthru] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-The Export-WslDistribution cmdlet exports each of the specified WSL distributions to a gzipped
-tarball or VHD.
-You can specify distributions by their names, or use the Distribution parameter to
-pass an object returned by Get-WslDistribution.
 
-You can export multiple distributions by specifying a directory as the Destination.
-In this case,
-this cmdlet will automatically create files using the distribution name with the extension .tar.gz
-or .vhdx.
+The `Export-WslDistribution` cmdlet exports a WSL distributions to a gzipped tarball or VHD file.
+The distribution to export can be specified by name, or piped in from the `Get-WslDistribution`
+cmdlet.
 
-This cmdlet wraps the functionality of "wsl.exe --export".
+If the Destination parameter is an existing directory, the name of the distribution, with the
+extension .tar.gz or .vhdx, will be used as the file name. This allows you to export multiple
+distributions to a directory using a single command.
+
+This cmdlet wraps the functionality of `wsl.exe --export`.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
-```
-Export-WslDistribution Ubuntu D:\backup.tar.gz
+
+```powershell
+Export-WslDistribution "Ubuntu" D:\backup.tar.gz
 ```
 
-Exports the distribution named "Ubuntu" to a file named D:\backup.tar.gz.
+This example exports the distribution named "Ubuntu" to a file named D:\backup.tar.gz.
 
 ### EXAMPLE 2
-```
-Export-WslDistribution Ubuntu D:\backup.vhdx -Vhd
+
+```powershell
+Export-WslDistribution "Ubuntu" D:\backup.vhdx -Vhd
 ```
 
-Exports the distribution named "Ubuntu" to a file named D:\backup.vhdx which is a VHD, not a gzipped
-tarball.
+This example exports the distribution named "Ubuntu" to a file named D:\backup.vhdx which is a VHD,
+not a gzipped tarball. This requires the distribution to use WSL2.
 
 ### EXAMPLE 3
-```
-Export-WslDistribution Ubuntu* D:\backup
+
+```powershell
+New-Item D:\backup -ItemType Directory
+Export-WslDistribution "Ubuntu*" D:\backup
 ```
 
-Exports all distributions whose names start with Ubuntu to files in a directory named D:\backup.
+This example exports all distributions whose name starts with Ubuntu to a directory named D:\backup.
+Separate .tar.gz files will be created for each distribution.
 
 ### EXAMPLE 4
-```
-Export-WslDistribution Ubuntu* D:\backup -Vhd
+
+```powershell
+New-Item D:\backup -ItemType Directory
+Export-WslDistribution "Ubuntu*" D:\backup -Vhd
 ```
 
-Exports all distributions whose names start with Ubuntu to files in a directory named D:\backup,
-using .vhdx files.
+This example exports all distributions whose name starts with Ubuntu to a directory named D:\backup.
+Separate .vhdx files will be created for each distribution.
 
 ### EXAMPLE 5
-```
+
+```powershell
 Get-WslDistribution -Version 2 | Export-WslDistribution -Destination D:\backup -Passthru
+```
+
+```Output
 Name           State Version Default
 ----           ----- ------- -------
 Ubuntu       Stopped       2    True
 Alpine       Stopped       2   False
 ```
 
-Exports all WSL2 distributions to a directory named D:\backup.
+This example exports all WSL2 distributions to a directory named D:\backup. It uses the Passthru
+parameter to return the WslDistribution objects for the affected distributions.
 
 ## PARAMETERS
 
 ### -Destination
+
 Specifies the destination directory or file name where the exported distribution will be stored.
 
-If you specify an existing directory as the destination, this cmdlet will append a file name based
-on the distribution name.
-If you specify a non-existing file name, that name will be used verbatim.
+If you specify an existing directory as the destination, a file will be created in that directory
+using the distribution name and the extension .tar.gz, or .vhdx if the Vhd parameter is used.
+
+If you specify a non-existing path, that path will be used verbatim as the file for the exported
+distribution.
 
 ```yaml
 Type: String
@@ -102,7 +119,8 @@ Accept wildcard characters: False
 ```
 
 ### -Distribution
-Specifies WslDistribution objects that represent the distributions to be exported.
+
+Specifies the distribution to be terminated.
 
 ```yaml
 Type: WslDistribution[]
@@ -117,8 +135,8 @@ Accept wildcard characters: False
 ```
 
 ### -Name
-Specifies the distribution names of distributions to be exported.
-Wildcards are permitted.
+
+Specifies the name of a distribution to be terminated.
 
 ```yaml
 Type: String[]
@@ -133,9 +151,9 @@ Accept wildcard characters: True
 ```
 
 ### -Passthru
-Returns an object that represents the distribution.
-By default, this cmdlet does not generate any
-output.
+
+Specifies that a WslDistribution object is to be passed through to the pipeline representing the
+distribution to be shutdown.
 
 ```yaml
 Type: SwitchParameter
@@ -150,7 +168,9 @@ Accept wildcard characters: False
 ```
 
 ### -Vhd
-Export the distribution as a .vhdx file, instead of a .tar.gz file.
+
+Specifies that the distribution should be exported as a .vhdx file, instead of a .tar.gz file. This
+is only supported for WSL2 distributions.
 
 This parameter requires at least WSL version 0.58.
 
@@ -167,6 +187,7 @@ Accept wildcard characters: False
 ```
 
 ### -Confirm
+
 Prompts you for confirmation before running the cmdlet.
 
 ```yaml
@@ -182,6 +203,7 @@ Accept wildcard characters: False
 ```
 
 ### -WhatIf
+
 Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
@@ -198,18 +220,28 @@ Accept wildcard characters: False
 ```
 
 ### CommonParameters
+
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### WslDistribution, System.String
-### You can pipe a WslDistribution object retrieved by Get-WslDistribution, or a string that contains
-### the distribution name to this cmdlet.
+### WslDistribution
+
+You can pipe an object retrieved by `Get-WslDistribution` to this cmdlet.
+
+### System.String
+
+You can pipe a distribution name to this cmdlet.
+
 ## OUTPUTS
 
-### WslDistribution
-### The cmdlet returns an object that represent the distribution, if you use the Passthru parameter.
-### Otherwise, this cmdlet does not generate any output.
+### None by default; WslDistribution if PassThru is specified
+
+See `Get-WslDistribution` for more information.
+
 ## NOTES
 
 ## RELATED LINKS
+
+[Get-WslDistribution](Get-WslDistribution.md)
+[Import-WslDistribution](Import-WslDistribution.md)
