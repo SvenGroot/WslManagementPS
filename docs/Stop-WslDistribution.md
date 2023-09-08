@@ -1,4 +1,4 @@
-﻿---
+---
 external help file: Wsl-help.xml
 Module Name: Wsl
 online version: https://github.com/SvenGroot/WslManagementPS/blob/main/docs/Stop-WslDistribution.md
