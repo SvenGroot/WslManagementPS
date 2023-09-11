@@ -1,6 +1,6 @@
 # What's new in the WSL Management PowerShell module
 
-## Version 2.0
+## Version 2.0 (2023-09-11)
 
 - Improvements to the [`Import-WslDistribution`][] and [`Export-WslDistribution`][] cmdlets.
   - Support importing and exporting VHD files, including importing a VHD in place.
