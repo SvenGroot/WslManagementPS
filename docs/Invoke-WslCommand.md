@@ -16,9 +16,8 @@ Runs a command in a WSL distribution.
 ### DistributionName
 
 ```
-Invoke-WslCommand [-Command] <String> [[-DistributionName] <String[]>] [[-User] <String>]
- [-WorkingDirectory <String>] [-ShellType <String>] [-System] [-Graphical] [-WhatIf] [-Confirm]
- [<CommonParameters>]
+Invoke-WslCommand [-Command] <String> [-Name <String[]>] [[-User] <String>] [-WorkingDirectory <String>]
+ [-ShellType <String>] [-System] [-Graphical] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Distribution
@@ -40,9 +39,8 @@ Invoke-WslCommand [-RawCommand] -Distribution <WslDistribution[]> [[-User] <Stri
 ### DistributionNameRaw
 
 ```
-Invoke-WslCommand [-RawCommand] [[-DistributionName] <String[]>] [[-User] <String>]
- [-WorkingDirectory <String>] [-ShellType <String>] [-System] [-Graphical] -Remaining <String[]> [-WhatIf]
- [-Confirm] [<CommonParameters>]
+Invoke-WslCommand [-RawCommand] [-Name <String[]>] [[-User] <String>] [-WorkingDirectory <String>]
+ [-ShellType <String>] [-System] [-Graphical] -Remaining <String[]> [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -150,22 +148,6 @@ Accept pipeline input: True (ByValue)
 Accept wildcard characters: False
 ```
 
-### -DistributionName
-
-Specifies the name of a distribution to run the command in.
-
-```yaml
-Type: String[]
-Parameter Sets: DistributionName, DistributionNameRaw
-Aliases:
-
-Required: False
-Position: 2
-Default value: None
-Accept pipeline input: True (ByValue)
-Accept wildcard characters: True
-```
-
 ### -Graphical
 
 Specifies that the command should be executed using WSLg. Using this option prevents blocking the
@@ -228,7 +210,7 @@ This parameter requires at least WSL version 0.64.1.
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases:
+Aliases: st
 
 Required: False
 Position: Named
@@ -281,7 +263,7 @@ the value must be a Windows path.
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases:
+Aliases: wd, cd
 
 Required: False
 Position: Named
@@ -321,6 +303,22 @@ Position: Named
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
+```
+
+### -Name
+
+Specifies the name of a distribution to run the command in.
+
+```yaml
+Type: String[]
+Parameter Sets: DistributionName, DistributionNameRaw
+Aliases: DistributionName
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: True (ByValue)
+Accept wildcard characters: True
 ```
 
 ### CommonParameters

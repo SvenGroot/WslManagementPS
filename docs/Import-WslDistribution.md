@@ -13,6 +13,18 @@ Imports a WSL distribution from a gzipped tarball or VHD file.
 
 ## SYNTAX
 
+### LiteralPathInPlace
+```
+Import-WslDistribution [-InPlace] -LiteralPath <String[]> [[-Name] <String>] [-WhatIf] [-Confirm]
+ [<CommonParameters>]
+```
+
+### PathInPlace
+```
+Import-WslDistribution [-InPlace] [-Path] <String[]> [[-Name] <String>] [-WhatIf] [-Confirm]
+ [<CommonParameters>]
+```
+
 ### Path
 
 ```
@@ -25,20 +37,6 @@ Import-WslDistribution [-Path] <String[]> [-Destination] <String> [[-Name] <Stri
 ```
 Import-WslDistribution -LiteralPath <String[]> [-Destination] <String> [[-Name] <String>] [[-Version] <Int32>]
  [-RawDestination] [-Format <WslExportFormat>] [-WhatIf] [-Confirm] [<CommonParameters>]
-```
-
-### LiteralPathInPlace
-
-```
-Import-WslDistribution [-InPlace] -LiteralPath <String[]> [[-Name] <String>] [-WhatIf] [-Confirm]
- [<CommonParameters>]
-```
-
-### PathInPlace
-
-```
-Import-WslDistribution [-InPlace] [-Path] <String[]> [[-Name] <String>] [-WhatIf] [-Confirm]
- [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -185,7 +183,7 @@ Importing VHDs requires at least WSL version 0.58.
 ```yaml
 Type: WslExportFormat
 Parameter Sets: Path, LiteralPath
-Aliases:
+Aliases: fmt
 
 Required: False
 Position: Named
@@ -204,7 +202,7 @@ This parameter requires at least WSL version 0.58.
 ```yaml
 Type: SwitchParameter
 Parameter Sets: LiteralPathInPlace, PathInPlace
-Aliases:
+Aliases: ip
 
 Required: True
 Position: Named
@@ -221,7 +219,7 @@ exactly as it is typed. No characters are interpreted as wildcards.
 ```yaml
 Type: String[]
 Parameter Sets: LiteralPathInPlace, LiteralPath
-Aliases: PSPath
+Aliases: PSPath, LP
 
 Required: True
 Position: Named
@@ -240,7 +238,7 @@ command.
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases:
+Aliases: DistributionName
 
 Required: False
 Position: 3
@@ -275,7 +273,7 @@ If **RawDestination** is specified, you cannot import multiple distributions wit
 ```yaml
 Type: SwitchParameter
 Parameter Sets: Path, LiteralPath
-Aliases:
+Aliases: rd
 
 Required: False
 Position: Named

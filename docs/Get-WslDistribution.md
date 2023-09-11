@@ -128,7 +128,7 @@ Specifies the name of a distribution to get detailed information about.
 ```yaml
 Type: String[]
 Parameter Sets: (All)
-Aliases:
+Aliases: DistributionName
 
 Required: False
 Position: 1

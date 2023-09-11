@@ -95,7 +95,7 @@ parameter does not accept wildcards.
 ```yaml
 Type: String
 Parameter Sets: DistributionName
-Aliases:
+Aliases: DistributionName
 
 Required: False
 Position: 1
@@ -113,7 +113,7 @@ This parameter requires at least WSL version 0.64.1.
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases:
+Aliases: st
 
 Required: False
 Position: Named
@@ -166,7 +166,7 @@ the value must be a Windows path.
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases:
+Aliases: wd, cd
 
 Required: False
 Position: Named

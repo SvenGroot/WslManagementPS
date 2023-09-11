@@ -93,7 +93,7 @@ Specifies the name of a distribution to be removed.
 ```yaml
 Type: String[]
 Parameter Sets: DistributionName
-Aliases:
+Aliases: DistributionName
 
 Required: True
 Position: 1

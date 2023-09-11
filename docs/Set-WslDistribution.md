@@ -102,7 +102,7 @@ Specifies the name of a distribution whose settings to change.
 ```yaml
 Type: String[]
 Parameter Sets: DistributionName
-Aliases:
+Aliases: DistributionName
 
 Required: True
 Position: 1

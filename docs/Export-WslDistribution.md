@@ -168,7 +168,7 @@ Exporting VHDs requires at least WSL version 0.58.
 ```yaml
 Type: WslExportFormat
 Parameter Sets: (All)
-Aliases:
+Aliases: fmt
 Accepted values: Auto, Tar, Vhd
 
 Required: False
@@ -185,7 +185,7 @@ Specifies the name of a distribution to be exported.
 ```yaml
 Type: String[]
 Parameter Sets: DistributionName
-Aliases:
+Aliases: DistributionName
 
 Required: True
 Position: 1

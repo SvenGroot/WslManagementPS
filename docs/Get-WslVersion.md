@@ -14,7 +14,7 @@ Gets version information about the Windows Subsystem for Linux and its component
 ## SYNTAX
 
 ```
-Get-WslVersion
+Get-WslVersion [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -53,6 +53,9 @@ DefaultDistroVersion : 2
 This example gets information about the installed version of WSL.
 
 ## PARAMETERS
+
+### CommonParameters
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 

@@ -217,6 +217,7 @@ function Get-WslDistribution
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$false, ValueFromPipeline = $true)]
+        [Alias("DistributionName")]
         [ValidateNotNullOrEmpty()]
         [SupportsWildcards()]
         [string[]]$Name,
@@ -280,6 +281,7 @@ function Stop-WslDistribution
     [CmdletBinding(SupportsShouldProcess=$true)]
     param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = "DistributionName", Position = 0)]
+        [Alias("DistributionName")]
         [ValidateNotNullOrEmpty()]
         [SupportsWildCards()]
         [string[]]$Name,
@@ -326,6 +328,7 @@ function Set-WslDistribution
     [CmdletBinding(SupportsShouldProcess=$true)]
     param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = "DistributionName", Position = 0)]
+        [Alias("DistributionName")]
         [ValidateNotNullOrEmpty()]
         [SupportsWildCards()]
         [string[]]$Name,
@@ -388,6 +391,7 @@ function Remove-WslDistribution
     [CmdletBinding(SupportsShouldProcess=$true)]
     param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = "DistributionName", Position = 0)]
+        [Alias("DistributionName")]
         [ValidateNotNullOrEmpty()]
         [SupportsWildCards()]
         [string[]]$Name,
@@ -424,6 +428,7 @@ function Export-WslDistribution
     [CmdletBinding(SupportsShouldProcess=$true)]
     param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = "DistributionName", Position = 0)]
+        [Alias("DistributionName")]
         [ValidateNotNullOrEmpty()]
         [SupportsWildCards()]
         [string[]]$Name,
@@ -432,6 +437,7 @@ function Export-WslDistribution
         [Parameter(Mandatory = $true, Position = 1)]
         [string]$Destination,
         [Parameter(Mandatory = $false)]
+        [Alias("fmt")]
         [WslExportFormat]$Format = [WslExportFormat]::Auto
     )
 
@@ -502,6 +508,7 @@ function Import-WslDistribution
     param(
         [Parameter(Mandatory = $true, ParameterSetName = "PathInPlace")]
         [Parameter(Mandatory = $true, ParameterSetName = "LiteralPathInPlace")]
+        [Alias("ip")]
         [Switch]$InPlace,
         [Parameter(Mandatory = $true, Position = 0, ParameterSetName = "Path", ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [Parameter(Mandatory = $true, Position = 0, ParameterSetName = "PathInPlace", ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
@@ -510,7 +517,7 @@ function Import-WslDistribution
         [string[]] $Path,
         [Parameter(Mandatory = $true, ParameterSetName = "LiteralPath", ValueFromPipelineByPropertyName = $true)]
         [Parameter(Mandatory = $true, ParameterSetName = "LiteralPathInPlace", ValueFromPipelineByPropertyName = $true)]
-        [Alias("PSPath")]
+        [Alias("PSPath", "LP")]
         [ValidateNotNullOrEmpty()]
         [string[]] $LiteralPath,
         [Parameter(Mandatory = $true, Position = 1, ParameterSetName = "Path")]
@@ -518,15 +525,18 @@ function Import-WslDistribution
         [ValidateNotNullOrEmpty()]
         [string]$Destination,
         [Parameter(Mandatory = $false, Position = 2)]
+        [Alias("DistributionName")]
         [string]$Name,
         [Parameter(Mandatory = $false, Position = 3, ParameterSetName = "Path")]
         [Parameter(Mandatory = $false, Position = 3, ParameterSetName = "LiteralPath")]
         [int]$Version = 0,
         [Parameter(Mandatory = $false, ParameterSetName = "Path")]
         [Parameter(Mandatory = $false, ParameterSetName = "LiteralPath")]
+        [Alias("rd")]
         [Switch]$RawDestination,
         [Parameter(Mandatory = $false, ParameterSetName = "Path")]
         [Parameter(Mandatory = $false, ParameterSetName = "LiteralPath")]
+        [Alias("fmt")]
         [WslExportFormat]$Format = [WslExportFormat]::Auto
     )
 
@@ -602,9 +612,10 @@ function Invoke-WslCommand
         [Switch]$RawCommand,
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ParameterSetName = "DistributionName", Position = 1)]
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ParameterSetName = "DistributionNameRaw")]
+        [Alias("DistributionName")]
         [ValidateNotNullOrEmpty()]
         [SupportsWildCards()]
-        [string[]]$DistributionName,
+        [string[]]$Name,
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = "Distribution")]
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = "DistributionRaw")]
         [WslDistribution[]]$Distribution,
@@ -615,9 +626,11 @@ function Invoke-WslCommand
         [ValidateNotNullOrEmpty()]
         [string]$User,
         [Parameter(Mandatory = $false)]
+        [Alias("wd", "cd")]
         [ValidateNotNullOrEmpty()]
         [string]$WorkingDirectory,
         [Parameter(Mandatory = $false)]
+        [Alias("st")]
         [ValidateSet("Standard", "Login", "None")]
         [string]$ShellType,
         [Parameter(Mandatory = $false)]
@@ -635,10 +648,10 @@ function Invoke-WslCommand
             $distros = $Distribution
 
         } else {
-            if ($DistributionName) {
-                $distros = Get-WslDistribution $DistributionName
+            if ($Name) {
+                $distros = Get-WslDistribution $Name
                 if (-not $distros) {
-                    throw "There is no distribution with the name '$DistributionName'."
+                    throw "There is no distribution with the name '$Name'."
                 }
 
             } else {
@@ -706,6 +719,7 @@ function Enter-WslDistribution
     [CmdletBinding(SupportsShouldProcess=$true)]
     param(
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ParameterSetName = "DistributionName", Position = 0)]
+        [Alias("DistributionName")]
         [ValidateNotNullOrEmpty()]
         [string]$Name,
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = "Distribution")]
@@ -714,9 +728,11 @@ function Enter-WslDistribution
         [ValidateNotNullOrEmpty()]
         [string]$User,
         [Parameter(Mandatory = $false)]
+        [Alias("wd", "cd")]
         [ValidateNotNullOrEmpty()]
         [string]$WorkingDirectory,
         [Parameter(Mandatory = $false)]
+        [Alias("st")]
         [ValidateSet("Standard", "Login")]
         [string]$ShellType,
         [Parameter(Mandatory = $false)]

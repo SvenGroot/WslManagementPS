@@ -21,6 +21,7 @@
 - Added the `WslDistribution.VhdPath` property for WSL2 distributions.
 - The `WslDistribution.FileSystemPath` property uses the `\\wsl.localhost` prefix.
 - The module now works if the `WSL_UTF8` environment variable is set.
+- Added aliases for several parameters on the cmdlets.
 - Various bug fixes.
 
 ## Version 1.0 (2019-10-23)
