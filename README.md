@@ -4,21 +4,23 @@ WSL Management for PowerShell is a PowerShell module that allows you to manage t
 for Linux (WSL), and its distributions. It provides PowerShell-friendly ways to retrieve information
 about distributions, change their settings, import and export them, terminate them, and remove them.
 
-This module wraps the various functions of "wsl.exe" in PowerShell cmdlets, making it easier to
+This module wraps the various functions of `wsl.exe` in PowerShell cmdlets, making it easier to
 script each operation. In addition, it provides *tab completion* of distribution names for all the
 commands.
 
-This module has been tested using the inbox WSL version of Windows 10 21h2, and using the most recent version of WSL from the Microsoft Store (version 1.2.5 as of this writing). Older versions of Windows
-are not supported, but if you find any problems with other store versions, please file an
+This module has been tested using the inbox WSL version of Windows 10 21h2 (the oldest version still
+in mainstream support as of this writing), and using the most recent version of WSL from the
+Microsoft Store (version 1.2.5 as of this writing). If you find any problems with other versions
+(especially newer store versions), please file an
 [issue](https://github.com/SvenGroot/WslManagementPS/issues).
 
 This module supports both Windows PowerShell and cross-platform
-[PowerShell](https://github.com/PowerShell/PowerShell). It can also be run on PowerShell for Linux
+[PowerShell](https://github.com/PowerShell/PowerShell). It can also be run on PowerShell on Linux
 inside WSL itself, although not all features are available in this mode.
 
 ## Why use this module?
 
-This module offers the following advantages over plain wsl.exe:
+This module offers the following advantages over plain `wsl.exe`:
 
 - Provides information in PowerShell objects to make it easier to access, filter, and script.
 - Provides additional distribution information such as the the installation folder and VHD location.
@@ -74,7 +76,7 @@ The name supports wildcards; for example, you can retrieve all distributions who
 "Ubuntu".
 
 ```powershell
-Get-WslDistribution Ubuntu*
+Get-WslDistribution "Ubuntu*"
 ```
 
 > Note: all cmdlets in this module support wildcards and tab completion on the distribution name.
@@ -100,16 +102,16 @@ Get-WslDistribution -Default
 The returned object's type is a custom `WslDistribution` class defined by the module. It has the
 following properties:
 
-Property         | Value
------------------|------------------------------------------------------------------------------------------------------------------------------------------------------
-`Name`           | The distribution name.
-`State`          | An enumeration that indicates the current state of the distribution.
-`Version`        | Indicates whether this distribution uses WSL1 or WSL2.
-`Default`        | A boolean that indicates whether this is the default distribution.
-`Guid`           | The identifier for the distribution used in the registry and by WSL internally.
-`BasePath`       | The full path to the install location of the distribution.
-`VhdPath`        | The full path to the distribution's VHD file. This is only set for WSL2 distributions.
-`FileSystemPath` | The UNC path to use to access the distribution's file system, in the form `\\wsl.localhost\<distro>`.
+Property         | Type                 | Value
+-----------------|----------------------|-------------------------------------------------------------------------------------------------------------------------------------------
+`Name`           | System.String        | The distribution name.
+`State`          | WslDistributionState | An enumeration that indicates the current state of the distribution (`Stopped`, `Running`, `Installing`, `Uninstalling`, or `Converting`).
+`Version`        | System.Int32         | Indicates whether this distribution uses WSL1 or WSL2.
+`Default`        | System.Boolean       | Indicates whether this is the default distribution.
+`Guid`           | System.Guid          | The identifier for the distribution used in the registry and by WSL internally.
+`BasePath`       | System.String        | The full path to the install location of the distribution.
+`VhdPath`        | System.String        | The full path to the distribution's VHD file. This is only set for WSL2 distributions.
+`FileSystemPath` | System.String        | The UNC path to use to access the distribution's file system, in the form `\\wsl.localhost\<distro>`.
 
 ### Set-WslDistribution
 
@@ -121,7 +123,7 @@ This cmdlet wraps the functionality of `wsl.exe --set-default` and `wsl.exe --se
 For example, to set Debian as the default:
 
 ```powershell
-Set-WslDistribution Debian -Default
+Set-WslDistribution "Debian" -Default
 ```
 
 To convert all WSL1 distributions to WSL2
@@ -154,10 +156,14 @@ The [`Remove-WslDistribution`][] cmdlet unregisters a WSL distribution.
 
 This cmdlet wraps the functionality of `wsl.exe --unregister`.
 
+:warning: This cmdlet will permanently remove a distribution and all the data stored in its file
+system without prompting for confirmation, unless you use `-Confirm`. You can use the `-WhatIf`
+parameter to test a command without actually removing anything.
+
 For example, to remove the distribution named "Ubuntu":
 
 ```powershell
-Remove-WslDistribution Ubuntu
+Remove-WslDistribution "Ubuntu"
 ```
 
 To remove all WSL1 distributions:
@@ -166,29 +172,25 @@ To remove all WSL1 distributions:
 Get-WslDistribution -Version 1 | Remove-WslDistribution
 ```
 
-:warning: This cmdlet will permanently remove a distribution and all the data stored in its file
-system without prompting with confirmation. You can use the `-WhatIf` parameter to test a command
-without actually removing anything.
-
 ### Export-WslDistribution
 
 The [`Export-WslDistribution`][] cmdlet Exports a WSL distribution to a gzipped tarball (`.tar.gz`)
 or VHD (`.vhdx`) file.
 
-You can export multiple distributions in a single command, by specifying a directory as the
+You can export multiple distributions in a single command by specifying an existing directory as the
 destination. In this case, this cmdlet will automatically create files using the distribution name
 with the extension `.tar.gz` or `.vhdx`.
 
 This cmdlet wraps the functionality of `wsl.exe --export`.
 
-For example, to export all WSL2 distributions to a directory (the directory `D:\backup` has to exist
+For example, to export all WS1 distributions to a directory (the directory `D:\backup` has to exist
 before running the command):
 
 ```powershell
-Get-WslDistribution -Version 2 | Export-WslDistribution -Destination D:\backup
+Get-WslDistribution -Version 1 | Export-WslDistribution -Destination D:\backup
 ```
 
-You can also export WSL2 distributions in VHD format.
+WSL2 distributions can also be exported in VHD format.
 
 ```powershell
 Get-WslDistribution -Version 2 | Export-WslDistribution -Destination D:\backup -Format "Vhd"
@@ -205,7 +207,7 @@ command.
 
 This cmdlet wraps the functionality of `wsl.exe --import`.
 
-For example, to import all .tar.gz files from a directory, storing them in subdirectories under
+For example, to import all `.tar.gz` files from a directory, storing them in subdirectories under
 `D:\wsl`:
 
 ```powershell
@@ -213,7 +215,7 @@ Import-WslDistribution D:\backup\*.tar.gz D:\wsl
 ```
 
 When importing VHD files, you can choose to copy them to a destination, or you can register them
-in-place:
+in place:
 
 ```powershell
 Import-WslDistribution D:\backup\*.vhdx -InPlace
@@ -221,10 +223,11 @@ Import-WslDistribution D:\backup\*.vhdx -InPlace
 
 ### Invoke-WslCommand
 
-The [`Invoke-WslCommand`][] cmdlet a command in a WSL distribution, returning the output as strings.
+The [`Invoke-WslCommand`][] cmdlet runs a command in a WSL distribution, returning the output as
+strings.
 
-This cmdlet will throw an exception if executing wsl.exe failed (e.g. there is no distribution with
-the specified name) or if the command returned a non-zero exit code.
+This cmdlet will throw an exception if executing `wsl.exe` failed (e.g. there is no distribution
+with the specified name) or if the command returned a non-zero exit code.
 
 This cmdlet wraps the functionality of `wsl.exe <command>`.
 
@@ -238,7 +241,7 @@ Get-WslDistribution -Version 2 | Invoke-WslCommand 'echo $(whoami) in $WSL_DISTR
 ```
 
 Instead of providing a single quoted command, you can also use the `-RawCommand` parameter to
-specify the command without quoting it, similar to how wsl.exe itself works:
+specify the command without quoting it, similar to how `wsl.exe` itself works:
 
 ```powershell
 Get-WslDistribution -Version 2 | Invoke-WslCommand -RawCommand -User root -- echo $`(whoami`) in `$WSL_DISTRO_NAME
@@ -251,7 +254,7 @@ the cmdlet itself.
 
 The [`Enter-WslDistribution`][] cmdlet starts an interactive session in a WSL distribution.
 
-This cmdlet will raise an error if executing wsl.exe failed (e.g. there is no distribution with
+This cmdlet will raise an error if executing `wsl.exe` failed (e.g. there is no distribution with
 the specified name) or if the session exited with a non-zero exit code.
 
 This cmdlet wraps the functionality of `wsl.exe` without specifying a command.
@@ -266,7 +269,7 @@ For example, to enter the Ubuntu distribution as the user root:
 Enter-WslDistribution Ubuntu root
 ```
 
-To import a distribution and immediately start it:
+To import a distribution and immediately start a session in it:
 
 ```powershell
 Import-WslDistribution D:\backup\Alpine.tar.gz D:\wsl | Enter-WslDistribution
@@ -277,7 +280,7 @@ Import-WslDistribution D:\backup\Alpine.tar.gz D:\wsl | Enter-WslDistribution
 The [`Get-WslVersion`][] cmdlet provides version information about the Windows Subsystem for Linux
 and its components. It also indicates whether WSL1 or WSL2 is the default.
 
-For example
+For example:
 
 ```powershell
 Get-WslVersion
@@ -296,7 +299,9 @@ Windows              : 10.0.22621.2215
 DefaultDistroVersion : 2
 ```
 
-The output of this command is a `WslVersionInfo` object, with the properties shown above.
+The output of this command is a `WslVersionInfo` object, with the properties shown above. All
+properties use the type `System.Version`, except for `DefaultDistroVersion` which is a
+`System.Int32`.
 
 If you are using the inbox version of WSL, all properties except for `Windows` and
 `DefaultDistroVersion` will be null.
@@ -321,8 +326,8 @@ to running the tests. If there are pre-existing distributions, you will see a bu
 
 The tests are written so that pre-existing distributions should not be deleted, unless you have
 distributions whose name starts with "wslps_". However, if you are testing changes, bugs in the
-module or tests could cause data loss, so it's strongly recommended to ensure you have no existing
-distributions before executing the tests.
+module or the tests could cause data loss, so it's strongly recommended to ensure you have no
+existing distributions before executing the tests.
 
 The tests download a tarball for the Alpine distribution, which is used to create distributions for
 testing. You can also use a custom tarball by invoking `Wsl.Tests.ps1` directly, using the
