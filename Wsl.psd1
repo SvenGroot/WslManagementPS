@@ -9,7 +9,7 @@
 RootModule = 'Wsl.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.0'
+ModuleVersion = '2.0.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -24,7 +24,7 @@ Author = 'Sven Groot'
 CompanyName = 'Ookii.org'
 
 # Copyright statement for this module
-Copyright = '(c) Sven Groot. All rights reserved.'
+Copyright = 'Copyright (c) 2019 Sven Groot.'
 
 # Description of the functionality provided by this module
 Description = 'PowerShell cmdlets to manage Windows Subsystem for Linux distributions.'
@@ -74,7 +74,8 @@ FunctionsToExport = @("Get-WslDistribution",
     "Export-WslDistribution",
     "Invoke-WslCommand",
     "Enter-WslDistribution",
-    "Stop-Wsl")
+    "Stop-Wsl",
+    "Get-WslVersion")
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
@@ -92,7 +93,7 @@ AliasesToExport = @()
 # ModuleList = @()
 
 # List of all files packaged with this module
-# FileList = @()
+FileList = @("Wsl.psd1", "Wsl.psm1", "Wsl-help.xml")
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
 PrivateData = @{
@@ -103,7 +104,7 @@ PrivateData = @{
         Tags = @("WSL", "Windows", "Subsystem", "Linux", "core", "pscore")
 
         # A URL to the license for this module.
-        LicenseUri = 'https://github.com/SvenGroot/WslManagementPS/blob/master/LICENSE'
+        LicenseUri = 'https://github.com/SvenGroot/WslManagementPS/blob/main/LICENSE'
 
         # A URL to the main website for this project.
         ProjectUri = 'https://github.com/SvenGroot/WslManagementPS'
@@ -112,14 +113,14 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        # ReleaseNotes = ''
+        ReleaseNotes = 'See https://www.ookii.org/Link/WslManagementPSVersionHistory'
 
     } # End of PSData hashtable
 
 } # End of PrivateData hashtable
 
 # HelpInfo URI of this module
-HelpInfoURI = 'https://github.com/SvenGroot/WslManagementPS/blob/master/README.md'
+# HelpInfoURI = ''
 
 # Default prefix for commands exported from this module. Override the default prefix using Import-Module -Prefix.
 # DefaultCommandPrefix = ''
