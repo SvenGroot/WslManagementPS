@@ -21,7 +21,7 @@ Starts an interactive session in a WSL distribution.
 
 ### [Export-WslDistribution](Export-WslDistribution.md)
 
-Exports a WSL distribution to a .tar.gz or VHD file.
+Exports a WSL distribution to a gzipped tarball or VHD file.
 
 ### [Get-WslDistribution](Get-WslDistribution.md)
 
@@ -33,7 +33,7 @@ Gets version information about the Windows Subsystem for Linux and its component
 
 ### [Import-WslDistribution](Import-WslDistribution.md)
 
-Imports a WSL distribution from a .tar.gz or VHD file.
+Imports a WSL distribution from a gzipped tarball or VHD file.
 
 ### [Invoke-WslCommand](Invoke-WslCommand.md)
 

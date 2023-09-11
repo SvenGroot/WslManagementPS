@@ -23,10 +23,10 @@ Get-WslDistribution [[-Name] <String[]>] [-Default] [[-State] <WslDistributionSt
 The `Get-WslDistribution` cmdlet gets information about all the WSL distributions installed for the
 current user.
 
-You can filter the output using the parameters of this cmdlet. Use the Name parameter to only return
-distributions with the specified name, supporting wildcards. Use the Default parameter to return
-only the default distribution. The State parameter filters by states such as `Running` or `Stopped`,
-and the Version parameter selects only WSL1 or WSL2 distributions.
+You can filter the output using the parameters of this cmdlet. Use the **Name** parameter to only
+return distributions with the specified name, supporting wildcards. Use the **Default** parameter to
+return only the default distribution. The **State** parameter filters by states such as `Running` or
+`Stopped`, and the **Version** parameter selects only WSL1 or WSL2 distributions.
 
 This cmdlet wraps the functionality of `wsl.exe --list --verbose`.
 
@@ -83,7 +83,7 @@ This example gets only those distribution which are running, and are using WSL2.
 Get-WslDistribution "Ubuntu*" | Stop-WslDistribution
 ```
 
-This example terminates all distributions whose name starts with `Ubuntu`.
+This example get all distributions whose name starts with `Ubuntu`, and then terminates them.
 
 ### EXAMPLE 5
 
@@ -99,7 +99,7 @@ Debian       Stopped       1   False
 ```
 
 This example pipes the contents of a file, containing the names of distributions, to the
-`Get-WslDistribution` cmdlet.
+`Get-WslDistribution` cmdlet. Only the distributions that are listed in the file are returned.
 
 ## PARAMETERS
 
@@ -186,10 +186,11 @@ You can pipe a distribution name to this cmdlet.
 
 ### WslDistribution
 
-The cmdlet returns objects that represent the distributions on the computer.
+This cmdlet returns objects that represent the distributions on the computer. This object has the
+following properties:
 
 - `Name`: The distribution name.
-- `State`: The current state of the distribution (Stopped, Running, Installing, Uninstalling, or Converting).
+- `State`: The current state of the distribution (`Stopped`, `Running`, `Installing`, `Uninstalling`, or `Converting`).
 - `Version`: Indicates whether this distribution uses WSL1 or WSL2.
 - `Default`: A boolean that indicates whether this is the default distribution.
 - `Guid`: The identifier for the distribution used in the registry and by WSL internally.
@@ -197,17 +198,23 @@ The cmdlet returns objects that represent the distributions on the computer.
 - `FileSystemPath`: The path to use to access the distribution's file system, in the form `\\wsl.localhost\distro`.
 - `VhdPath`: For WSL2 distributions, the path to the VHD file containing the distribution's file system.
 
-The `Guid`, `BasePath`, and `VhdPath` properties will be `$null` if this cmdlet was invoked from
-inside a WSL distribution.
+The `Guid`, `BasePath`, and `VhdPath` properties will be null if this cmdlet was invoked from
+Linux PowerShell inside a WSL distribution.
 
 ## NOTES
 
 ## RELATED LINKS
 
 [Enter-WslDistribution](Enter-WslDistribution.md)
+
 [Export-WslDistribution](Export-WslDistribution.md)
+
 [Import-WslDistribution](Import-WslDistribution.md)
+
 [Invoke-WslCommand](Invoke-WslCommand.md)
+
 [Remove-WslDistribution](Remove-WslDistribution.md)
+
 [Set-WslDistribution](Remove-WslDistribution.md)
+
 [Stop-WslDistribution](Remove-WslDistribution.md)

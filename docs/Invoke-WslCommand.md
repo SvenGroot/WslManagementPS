@@ -52,7 +52,7 @@ command as a string. The distribution to run the command in can be specified by 
 from the `Get-WslDistribution` cmdlet. If no distribution is specified, the command is executed in
 the default distribution.
 
-This cmdlet will throw an exception if executing wsl.exe failed (e.g. if there is no distribution
+This cmdlet will throw an exception if executing `wsl.exe` failed (e.g. if there is no distribution
 with the specified name), or if the command exited with an non-zero exit code.
 
 The command to execute can be specified in two ways. The default is using the **Command** parameter,
@@ -113,14 +113,14 @@ Invoke-WslCommand -RawCommand -- ls -u
 ```
 
 This example uses the **RawCommand** parameter, and uses the `--` separator to use everything after
-it as part of the Linux command, even if it's a valid parameter for `Invoke-WslCommand`. This
+it as part of the Linux command, even if it is a valid parameter for `Invoke-WslCommand`. This
 prevents `-u` from being interpreted as an alias for the **User** argument.
 
 ## PARAMETERS
 
 ### -Command
 
-Specifies the command to run.
+Specifies the command to run, as a string that will be used with `/bin/sh -c`.
 
 ```yaml
 Type: String
@@ -203,7 +203,7 @@ Accept wildcard characters: False
 
 ### -Remaining
 
-Collects the remaining arguments for the RawCommand switch.
+Collects the remaining arguments for when the **RawCommand** parameter is supplied.
 
 ```yaml
 Type: String[]
@@ -257,7 +257,8 @@ Accept wildcard characters: False
 
 ### -User
 
-Specifies the Linux user to run the command as.
+Specifies the Linux user to run the command as. If omitted, the default user for the distribution
+is used.
 
 ```yaml
 Type: String
@@ -340,11 +341,13 @@ You can pipe a distribution name to this cmdlet.
 
 ### System.String
 
-This cmdlet returns the output of the command, as text.
+This cmdlet returns the output of the command, as text. If the **Graphical** parameter is used,
+no output will be returned, and the command finishes while the application may still be executing.
 
 ## NOTES
 
 ## RELATED LINKS
 
 [Get-WslDistribution](Get-WslDistribution.md)
+
 [Enter-WslDistribution](Enter-WslDistribution.md)

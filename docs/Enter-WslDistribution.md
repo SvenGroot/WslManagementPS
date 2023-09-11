@@ -34,10 +34,10 @@ session, all commands that you type run inside the WSL distribution. You can hav
 interactive session at a time.
 
 The distribution to enter can be specified by name, or piped in from the `Get-WslDistribution`
-cmdlet. If no distribution is specifies, the default distribution will be used.
+cmdlet. If no distribution is specified, the default distribution will be used.
 
-This cmdlet will throw an exception if executing wsl.exe failed (e.g. if there is no distribution
-with the specified name), or if the session exited with an error code.
+This cmdlet will throw an exception if executing `wsl.exe` failed (e.g. if there is no distribution
+with the specified name), or if the session exited with an non-zero exit code.
 
 This cmdlet wraps the functionality of `wsl.exe` without specifying a command.
 
@@ -54,7 +54,7 @@ This example starts a shell in the default distribution.
 ### EXAMPLE 2
 
 ```powershell
-Enter-WslDistribution Ubuntu root -WorkingDirectory ~
+Enter-WslDistribution Ubuntu root -WorkingDirectory "~"
 ```
 
 This example starts a shell in the distribution named "Ubuntu", using the "root" user. The starting
@@ -63,7 +63,7 @@ directory will be the Linux user's home directory.
 ### EXAMPLE 3
 
 ```powershell
-Import-WslDistribution D:\backup\Alpine.tar.gz D:\wsl -Passthru | Enter-WslDistribution
+Import-WslDistribution D:\backup\Alpine.tar.gz D:\wsl | Enter-WslDistribution
 ```
 
 This example imports a WSL distribution, and immediately starts an interactive session in that
@@ -73,7 +73,7 @@ distribution.
 
 ### -Distribution
 
-Specifies the distribution to be enter.
+Specifies the distribution to enter.
 
 ```yaml
 Type: WslDistribution
@@ -89,7 +89,7 @@ Accept wildcard characters: False
 
 ### -Name
 
-Specifies the name of a distribution to be enter. Unlike with other cmdlets in this module, this
+Specifies the name of a distribution to enter. Unlike with other cmdlets in this module, this
 parameter does not accept wildcards.
 
 ```yaml
@@ -142,7 +142,8 @@ Accept wildcard characters: False
 
 ### -User
 
-Specifies the Linux user to run the interactive session as.
+Specifies the Linux user to run the interactive session as. If omitted, the default user for the
+distribution is used.
 
 ```yaml
 Type: String
@@ -228,4 +229,5 @@ You can pipe a distribution name to this cmdlet.
 ## RELATED LINKS
 
 [Get-WslDistribution](Get-WslDistribution.md)
+
 [Invoke-WslCommand](Invoke-WslCommand.md)

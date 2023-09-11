@@ -9,7 +9,7 @@ schema: 2.0.0
 
 ## SYNOPSIS
 
-Imports a WSL distribution from a .tar.gz or VHD file.
+Imports a WSL distribution from a gzipped tarball or VHD file.
 
 ## SYNTAX
 
@@ -53,6 +53,9 @@ A directory with the name of the distribution is created as a child of the path 
 **Destination** parameter, unless the **RawDestination** parameter is used. This allows multiple
 distributions to be imported using a single command.
 
+This cmdlet can be used to import distributions to a new location, or with VHD files it can also
+register them using the VHD file in the supplied location using the **InPlace** parameter.
+
 This cmdlet wraps the functionality of `wsl.exe --import`.
 
 ## EXAMPLES
@@ -86,7 +89,7 @@ Ubuntu       Stopped       2   False
 
 This example imports the file named `D:\backup.tar.gz` as a distribution named "Ubuntu", whose file
 system will be stored in the directory `D:\wsl\mydistro`. The name of the distribution is not appended
-to this path because the RawDestination parameter was used.
+to this path because the **RawDestination** parameter was used.
 
 ### EXAMPLE 3
 
@@ -102,7 +105,7 @@ Debian       Stopped       2   False
 Ubuntu       Stopped       2   False
 ```
 
-This example imports all .tar.gz files from `D:\backup`, using the base name of each file as the name
+This example imports all `.tar.gz` files from `D:\backup`, using the base name of each file as the name
 of the distribution. Each distribution will be stored in a separate subdirectory of `D:\wsl`.
 
 ### EXAMPLE 4
@@ -119,7 +122,7 @@ Debian       Stopped       2   False
 Ubuntu       Stopped       2   False
 ```
 
-This example imports all .vhdx files from `D:\backup`, using the base name of each file as the name
+This example imports all `.vhdx` files from `D:\backup`, using the base name of each file as the name
 of the distribution. Each VHD file will be copied to a separate subdirectory of `D:\wsl`.
 
 ### EXAMPLE 5
@@ -144,18 +147,18 @@ Alpine       Stopped       1   False
 Debian       Stopped       1   False
 ```
 
-This example imports all .tar.gz files, except those whose names start with Ubuntu, as WSL1
+This example imports all `.tar.gz` files, except those whose names start with Ubuntu, as WSL1
 distributions stored in subdirectories of `D:\wsl`.
 
 ## PARAMETERS
 
 ### -Destination
 
-Specifies the destination directory or file name where the file system for the imported distribution
-will be stored.
+Specifies the destination directory where the file system for the imported distribution will be
+stored.
 
-Unless the RawDestination parameter is used, the name of the distribution will be appended to this
-path.
+Unless the **RawDestination** parameter is used, the name of the distribution will be appended to
+this path as a subdirectory.
 
 ```yaml
 Type: String
@@ -171,13 +174,13 @@ Accept wildcard characters: False
 
 ### -Format
 
-Specifies the format of the file to import, which can be either a gzipped tarball or a VHD. This
-parameter accepts the following values: `Auto` determines the format based on the file extension;
-`Tar` indicates the file is a gzipped tarball; and `Vhd` indicates the file is a Virtual Hard Disk.
+Specifies the format of the file to import, which can be either a gzipped tarball or a VHD. `Auto`
+determines the format based on the file extension; `Tar` indicates the file is a gzipped tarball;
+and `Vhd` indicates the file is a Virtual Hard Disk.
 
 When using `Auto`, all files are assumed to be gzipped tarballs, unless their name ends in `.vhdx`.
 
-This parameter requires at least WSL version 0.58.
+Importing VHDs requires at least WSL version 0.58.
 
 ```yaml
 Type: WslExportFormat
@@ -194,7 +197,7 @@ Accept wildcard characters: False
 ### -InPlace
 
 Specifies that the new distribution should use the input file in its current location, without
-copying it. The input must be a .vhdx file when importing in place.
+copying it. The input must be a `.vhdx` file when importing in place.
 
 This parameter requires at least WSL version 0.58.
 
@@ -212,8 +215,8 @@ Accept wildcard characters: False
 
 ### -LiteralPath
 
-Specifies the path to a .tar.gz or .vhdx file to import. The value of **LiteralPath** is used exactly
-as it is typed. No characters are interpreted as wildcards.
+Specifies the path to a `.tar.gz` or `.vhdx` file to import. The value of **LiteralPath** is used
+exactly as it is typed. No characters are interpreted as wildcards.
 
 ```yaml
 Type: String[]
@@ -231,7 +234,7 @@ Accept wildcard characters: False
 
 Specifies the name of the imported WSL distribution.
 
-If you specify am explicit distribution name, you cannot import multiple distributions with a single
+If you specify an explicit distribution name, you cannot import multiple distributions with a single
 command.
 
 ```yaml
@@ -248,7 +251,7 @@ Accept wildcard characters: False
 
 ### -Path
 
-Specifies the path to a .tar.gz or .vhdx file to import. Wildcard characters are permitted.
+Specifies the path to a `.tar.gz` or `.vhdx` file to import. Wildcard characters are permitted.
 
 ```yaml
 Type: String[]
@@ -353,4 +356,5 @@ An object representing the imported distribution. See `Get-WslDistribution` for 
 ## RELATED LINKS
 
 [Get-WslDistribution](Get-WslDistribution.md)
+
 [Export-WslDistribution](Export-WslDistribution.md)

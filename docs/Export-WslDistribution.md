@@ -9,7 +9,7 @@ schema: 2.0.0
 
 ## SYNOPSIS
 
-Exports a WSL distribution to a .tar.gz or VHD file.
+Exports a WSL distribution to a gzipped tarball or VHD file.
 
 ## SYNTAX
 
@@ -34,11 +34,12 @@ The distribution to export can be specified by name, or piped in from the `Get-W
 cmdlet.
 
 If the **Destination** parameter is an existing directory, the name of the distribution, with the
-extension .tar.gz or .vhdx, will be used as the file name. This allows you to export multiple
+extension `.tar.gz` or `.vhdx`, will be used as the file name. This allows you to export multiple
 distributions to a directory using a single command.
 
-The default behavior is to export as a gzipped tarball, unless the **Destination** is a file name
-ending in .vhdx. This behavior can be changed using the **Format** parameter.
+The default behavior is to export the distribution as a gzipped tarball, unless the **Destination**
+is a file name ending in `.vhdx`. This format can also be manually selected using the **Format**
+parameter.
 
 This cmdlet wraps the functionality of `wsl.exe --export`.
 
@@ -74,7 +75,7 @@ Mode                 LastWriteTime         Length Name
 -a---            9/8/2023 12:51 PM    171853217792 backup.vhdx
 ```
 
-This example exports the distribution named "Ubuntu" to a file named `D:\backup.vhdx` which is a
+This example exports the distribution named "Ubuntu" to a file named `D:\backup.vhdx`, which is a
 VHD, not a gzipped tarball. This requires the distribution to use WSL2.
 
 ### EXAMPLE 3
@@ -94,7 +95,7 @@ Mode                 LastWriteTime         Length Name
 ```
 
 This example exports all distributions whose name starts with Ubuntu to a directory named
-`D:\backup`. Separate .tar.gz files will be created for each distribution.
+`D:\backup`. Separate `.tar.gz` files will be created for each distribution.
 
 ### EXAMPLE 4
 
@@ -120,7 +121,8 @@ This example exports all WSL2 distributions to a directory named `D:\backup`, us
 Specifies the destination directory or file name where the exported distribution will be stored.
 
 If you specify an existing directory as the destination, a file will be created in that directory
-using the distribution name and the extension .tar.gz, or .vhdx if the Vhd parameter is used.
+using the distribution name and the extension `.tar.gz` or `.vhdx` depending on the value of the
+**Format** parameter.
 
 If you specify a non-existing path, that path will be used verbatim as the file for the exported
 distribution.
@@ -139,7 +141,7 @@ Accept wildcard characters: False
 
 ### -Distribution
 
-Specifies the distribution to be terminated.
+Specifies the distribution to be exported.
 
 ```yaml
 Type: WslDistribution[]
@@ -155,14 +157,13 @@ Accept wildcard characters: False
 
 ### -Format
 
-Specifies the format of the exported distribution. This parameter accepts the following values:
-`Auto` exports as a gzipped tarball, unless the **Destination** is a file name ending in `.vhdx`, in
-which case VHD format is used; `Tar` exports as a gzipped tarball; and `Vhd` exports as a Virtual
-Hard Disk.
+Specifies the format of the exported distribution. `Auto`, which is the default, exports as a
+gzipped tarball, unless the **Destination** is a file name ending in `.vhdx`, in which case VHD
+format is used; `Tar` exports as a gzipped tarball; and `Vhd` exports as a Virtual Hard Disk.
 
 Exporting as a VHD is only possible for WSL2 distributions.
 
-This parameter requires at least WSL version 0.58.
+Exporting VHDs requires at least WSL version 0.58.
 
 ```yaml
 Type: WslExportFormat
@@ -179,7 +180,7 @@ Accept wildcard characters: False
 
 ### -Name
 
-Specifies the name of a distribution to be terminated.
+Specifies the name of a distribution to be exported.
 
 ```yaml
 Type: String[]
@@ -244,11 +245,12 @@ You can pipe a distribution name to this cmdlet.
 
 ### System.IO.FileInfo
 
-The `FileInfo` object contains information about the exported file.
+The `FileInfo` object contains information about the file containing the exported distribution.
 
 ## NOTES
 
 ## RELATED LINKS
 
 [Get-WslDistribution](Get-WslDistribution.md)
+
 [Import-WslDistribution](Import-WslDistribution.md)

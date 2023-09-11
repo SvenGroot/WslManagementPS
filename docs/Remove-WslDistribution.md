@@ -47,7 +47,7 @@ This example unregisters the distribution named "Ubuntu".
 ### EXAMPLE 2
 
 ```powershell
-Remove-WslDistribution Ubuntu*
+Remove-WslDistribution "Ubuntu*"
 ```
 
 This example unregisters all distributions whose name starts with "Ubuntu".

@@ -26,8 +26,8 @@ The returned information includes the default distribution version, which is not
 but a number that indicates whether WSL1 or WSL2 is used by default for newly registered
 distributions.
 
-If WSL is not installed from the Microsoft store, and the inbox version of WSL is used, all the
-versions will be `$null`, except for the Windows version and DefaultDistroVersion.
+If WSL is not installed from the Microsoft Store, and the inbox version of WSL is used, all the
+versions will be null, except for the `Windows` version and `DefaultDistroVersion`.
 
 This cmdlet wraps the functionality of `wsl.exe --version`.
 
@@ -60,7 +60,17 @@ This example gets information about the installed version of WSL.
 
 ### WslVersionInfo
 
-The cmdlet returns an object whose properties represent the versions of WSL components.
+The cmdlet returns an object whose properties represent the versions of WSL components. It has the
+following properties:
+
+- `Wsl`: The version of the WSL app from the Microsoft Store.
+- `Kernel`: The Linux kernel version.
+- `WslG`: The version of the WSLg component.
+- `Msrdc`: The version of the Microsoft Remote Desktop Client.
+- `Direct3D`: The version of the Direct3D component.
+- `DXCore`: The version of the DXCore component.
+- `Windows`: The Windows operating system version.
+- `DefaultDistroVersion`: The version that newly registered distributions will use. `1` for WSL1, and `2` for WSL2.
 
 ## NOTES
 

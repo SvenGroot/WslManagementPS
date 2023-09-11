@@ -57,8 +57,8 @@ Ubuntu-18.04 Running       2   False
 Debian       Stopped       2   False
 ```
 
-This example converts all version 1 distributions to version 2.  It uses the Passthru parameter to
-return the WslDistribution objects for the affected distributions.
+This example converts all version 1 distributions to version 2.  It uses the **Passthru** parameter
+to return the WslDistribution objects for the affected distributions.
 
 ## PARAMETERS
 
@@ -114,7 +114,7 @@ Accept wildcard characters: True
 ### -Passthru
 
 Specifies that a WslDistribution object is to be passed through to the pipeline representing the
-distribution to be shutdown.
+distribution whose settings were changed.
 
 ```yaml
 Type: SwitchParameter

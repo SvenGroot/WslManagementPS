@@ -63,7 +63,7 @@ Ubuntu       Stopped       2    True
 Alpine       Stopped       2   False
 ```
 
-This example terminates all WSL2 distributions. It uses the Passthru parameter to return the
+This example terminates all WSL2 distributions. It uses the **Passthru** parameter to return the
 WslDistribution objects for the affected distributions.
 
 ## PARAMETERS
