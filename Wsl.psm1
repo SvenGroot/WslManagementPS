@@ -292,7 +292,6 @@ function Get-WslDistributionOnline
     Invoke-Wsl "--list", "--online" -IgnoreErrors | ForEach-Object {
         $name, $friendlyName = $_ -split ' ', 2
         if ($store) {
-            # $friendlyName = $($friendlyName.Split(@(" "), [System.StringSplitOptions]::RemoveEmptyEntries)) -join " "
             $friendlyName = $friendlyName.Trim()
             [WslDistributionOnline]@{
                 "Name" = $name
