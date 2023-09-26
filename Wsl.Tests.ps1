@@ -232,10 +232,17 @@ Describe "WslManagementPS" {
 
     It "Can list online distributions" {
         # Tests that there are online distributions available
-        $distros = Get-WslDistributionOnline
-        $distros | Should -Not -BeNullOrEmpty
-        ## TODO: Add test to check for empty Name or FriendlyName values
+        $distrosOnline = Get-WslDistributionOnline
+        $distrosOnline | Should -Not -BeNullOrEmpty
     }
+
+    It "Has no missing Name or FriendlyName values" {
+        # Tests that there are no null or empty values in either Name or FriendlyName
+        Get-WslDistributionOnline | ForEach-Object {
+            $_.Name | Should -Not -BeNullOrEmpty
+            $_.FriendlyName | Should -Not -BeNullOrEmpty
+        }
+    }    
 
     It "Supports WSL_UTF8" -Skip:($wslVersion -lt ([Version]::new(0, 64))) {
         $env:WSL_UTF8 = "1"
