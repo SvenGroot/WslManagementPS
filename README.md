@@ -318,7 +318,8 @@ completionism.
 
 ### Get-WslDistributionOnline
 
-The [`Get-WslDistributionOnline`][] cmdlet gets information about WSL distributions available from online sources.
+The [`Get-WslDistributionOnline`][] cmdlet gets information about WSL distributions available
+from online sources.
 
 This cmdlet wraps the functionality of `wsl.exe --list --online`.
 

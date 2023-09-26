@@ -233,7 +233,8 @@ Describe "WslManagementPS" {
     It "Can list online distributions" {
         # Tests that there are online distributions available
         $distros = Get-WslDistributionOnline
-        $distros.Count | Should -BeGreaterThan 0
+        $distros | Should -Not -BeNullOrEmpty
+        ## TODO: Add test to check for empty Name or FriendlyName values
     }
 
     It "Supports WSL_UTF8" -Skip:($wslVersion -lt ([Version]::new(0, 64))) {

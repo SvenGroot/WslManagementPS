@@ -59,12 +59,18 @@ class WslVersionInfo {
     [int]$DefaultDistroVersion
 }
 
-# Ensure IsWindows is set for Windows PowerShell to make future checks easier.
-if ($PSVersionTable.PSVersion.Major -lt 6) {
-    $IsWindows = $true
+# Provides the details of online distributions
+class WslDistributionOnline {
+    [string]$Name
+    [string]$FriendlyName
 }
 
-if ($IsWindows) {
+Ensure IsWindowsOS is set for Windows PowerShell to make future checks easier.
+if ($PSVersionTable.PSVersion.Major -lt 6) {
+    $IsWindowsOS = $true
+}
+
+if ($IsWindowsOS) {
     $wslPath = "$env:windir\system32\wsl.exe"
     $wslgPath = "$env:windir\system32\wslg.exe"
     if (-not [System.Environment]::Is64BitProcess) {
@@ -81,7 +87,7 @@ if ($IsWindows) {
 
 function Get-UnresolvedProviderPath([string]$Path)
 {
-    if ($IsWindows) {
+    if ($IsWindowsOS) {
         return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
 
     } else {
@@ -262,7 +268,7 @@ function Get-WslDistribution
         }
 
         # The additional registry properties aren't available if running inside WSL.
-        if ($IsWindows) {
+        if ($IsWindowsOS) {
             $distributions | ForEach-Object {
                 Get-WslDistributionProperties $_
             }
@@ -276,27 +282,28 @@ function Get-WslDistribution
 .EXTERNALHELP
 Wsl-help.xml
 #>
-# Retrieves listing of distributions available from online sources
-function Get-WslDistributionOnline {
-    [CmdletBinding()]
-    param(
-    )
 
-    process {
-        $store = $false
-        Invoke-Wsl "--list", "--online" -IgnoreErrors | Select-Object -Skip 1 | ForEach-Object {
-            $name, $friendlyName = $_ -split ' ', 2
-            if ($store -eq $true ) {
-                $friendlyName = $($friendlyName.Split(@(" "), [System.StringSplitOptions]::RemoveEmptyEntries)) -join " "
-                [PSCustomObject]@{
-                    "Name"         = $name
-                    "FriendlyName" = $friendlyName
-                }
+# Retrieves listing of distributions available from online sources
+function Get-WslDistributionOnline
+{
+    [CmdletBinding()]
+    param()
+    $store = $false
+    Invoke-Wsl "--list", "--online" -IgnoreErrors | ForEach-Object {
+        $name, $friendlyName = $_ -split ' ', 2
+        if ($store) {
+            # $friendlyName = $($friendlyName.Split(@(" "), [System.StringSplitOptions]::RemoveEmptyEntries)) -join " "
+            $friendlyName = $friendlyName.Trim()
+            [WslDistributionOnline]@{
+                "Name" = $name
+                "FriendlyName" = $friendlyName
             }
-            if ( $name -contains "NAME" ) {
-                $store = $true
-            }
+        } elseif ($name -ceq "NAME") {
+            # The "NAME", "FRIENDLY NAME" header is not localized so can be used to find the start
+            # of the list
+            $store = $true
         }
+        
     }
 }
 
@@ -854,11 +861,11 @@ function Get-WslVersion
         $result.DXCore = $output[5]
         $result.Windows = $output[6]
 
-    } elseif ($IsWindows) {
+    }  elseif ($IsWindowsOS) {
         $result.Windows = [Environment]::OSVersion.Version
     }
 
-    if ($IsWindows) {
+    if ($IsWindowsOS) {
         # Build 20150 is when WSL2 became the default if not specified in the registry.
         if ([Environment]::OSVersion.Version -lt [Version]::new(10, 0, 20150)) {
             $result.DefaultDistroVersion = 1

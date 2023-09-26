@@ -1,8 +1,9 @@
 # What's new in the WSL Management PowerShell module
 
-## Version 2.0.1 (2023-09-26)
+## Version 2.1.0 (2023-09-26)
 
-- Added support for retrieving WSL distribution listing from online sources via [`Get-WslDistributionOnline`][] cmdlet.
+- Added support for retrieving WSL distribution listing from online sources via
+  [`Get-WslDistributionOnline`][] cmdlet.
 
 ## Version 2.0 (2023-09-11)
 

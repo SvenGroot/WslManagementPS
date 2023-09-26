@@ -19,7 +19,8 @@ Get-WslDistributionOnline [<CommonParameters>]
 
 ## DESCRIPTION
 
-The `Get-WslDistributionOnline` cmdlet gets information about all the WSL distributions available from online sources.
+The `Get-WslDistributionOnline` cmdlet gets information about all the WSL distributions available
+from online sources.
 
 This cmdlet wraps the functionality of `wsl.exe --list --online`.
 
@@ -63,28 +64,14 @@ None
 
 ### WslDistributionOnline
 
-This cmdlet returns objects that represent the distributions available from online sources. This object has the
-following properties:
+This cmdlet returns objects that represent the distributions available from online sources. This
+object has the following properties:
 
-- `Name`: The distribution name.
+- `Name`: The distribution name that can be used to install it using `wsl.exe --install`
 - `FriendlyName`: The Friendly Name for the distribution.
 
 ## NOTES
 
 ## RELATED LINKS
 
-[Get-WslDistribution](Get-WslDistribution.md)
-
-[Enter-WslDistribution](Enter-WslDistribution.md)
-
-[Export-WslDistribution](Export-WslDistribution.md)
-
-[Import-WslDistribution](Import-WslDistribution.md)
-
-[Invoke-WslCommand](Invoke-WslCommand.md)
-
-[Remove-WslDistribution](Remove-WslDistribution.md)
-
-[Set-WslDistribution](Remove-WslDistribution.md)
-
-[Stop-WslDistribution](Remove-WslDistribution.md)
+None
