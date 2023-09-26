@@ -65,7 +65,7 @@ class WslDistributionOnline {
     [string]$FriendlyName
 }
 
-Ensure IsWindowsOS is set for Windows PowerShell to make future checks easier.
+# Ensure IsWindowsOS is set for Windows PowerShell to make future checks easier.
 if ($PSVersionTable.PSVersion.Major -lt 6) {
     $IsWindowsOS = $true
 }
@@ -303,7 +303,7 @@ function Get-WslDistributionOnline
             # of the list
             $store = $true
         }
-        
+
     }
 }
 
