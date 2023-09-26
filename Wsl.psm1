@@ -272,6 +272,30 @@ function Get-WslDistribution
     }
 }
 
+# Retrieves listing of distributions available from online sources
+function Get-WslDistributionOnline {
+    [CmdletBinding()]
+    param(
+    )
+
+    process {
+        $store = $false
+        Invoke-Wsl "--list", "--online" -IgnoreErrors | Select-Object -Skip 1 | ForEach-Object {
+            $name, $friendlyName = $_ -split ' ', 2
+            if ($store -eq $true ) {
+                $friendlyName = $($friendlyName.Split(@(" "), [System.StringSplitOptions]::RemoveEmptyEntries)) -join " "
+                [PSCustomObject]@{
+                    "Name"         = $name
+                    "FriendlyName" = $friendlyName
+                }
+            }
+            if ( $name -contains "NAME" ) {
+                $store = $true
+            }
+        }
+    }
+}
+
 <#
 .EXTERNALHELP
 Wsl-help.xml
@@ -868,3 +892,4 @@ Export-ModuleMember Invoke-WslCommand
 Export-ModuleMember Enter-WslDistribution
 Export-ModuleMember Stop-Wsl
 Export-ModuleMember Get-WslVersion
+Export-ModuleMember Get-WslDistributionOnline

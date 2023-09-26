@@ -9,7 +9,7 @@
 RootModule = 'Wsl.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.0.0'
+ModuleVersion = '2.0.1'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -75,7 +75,8 @@ FunctionsToExport = @("Get-WslDistribution",
     "Invoke-WslCommand",
     "Enter-WslDistribution",
     "Stop-Wsl",
-    "Get-WslVersion")
+    "Get-WslVersion",
+    "Get-WslDistributionOnline")
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()

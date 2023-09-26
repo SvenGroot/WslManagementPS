@@ -54,3 +54,7 @@ Terminates all WSL distributions, and shuts down the WSL2 lightweight utility VM
 ### [Stop-WslDistribution](Stop-WslDistribution.md)
 
 Terminates a WSL distribution.
+
+### [Get-WslDistributionOnline](Get-WslDistributionOnline.md)
+
+Gets information about WSL distributions available from online sources.
