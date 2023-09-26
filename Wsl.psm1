@@ -272,6 +272,10 @@ function Get-WslDistribution
     }
 }
 
+<#
+.EXTERNALHELP
+Wsl-help.xml
+#>
 # Retrieves listing of distributions available from online sources
 function Get-WslDistributionOnline {
     [CmdletBinding()]
