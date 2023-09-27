@@ -65,12 +65,18 @@ class WslDistributionOnline {
     [string]$FriendlyName
 }
 
-# Ensure IsWindows is set for Windows PowerShell to make future checks easier.
+# $IsWindows can be used on PowerShell 6+ to determine if we're running on Windows or not.
+# On Windows PowerShell 5.1, this variable does not exist so we assume we're running on Windows.
+# N.B. We don't assign directly to $IsWindows because that causes a PSScriptAnalyzer warning, since
+#      it's an automatic variable. All checks should use $IsWindowsOS instead.
 if ($PSVersionTable.PSVersion.Major -lt 6) {
-    $IsWindows = $true
+    $IsWindowsOS = $true
+
+} else {
+    $IsWindowsOS = $IsWindows
 }
 
-if ($IsWindows) {
+if ($IsWindowsOS) {
     $wslPath = "$env:windir\system32\wsl.exe"
     $wslgPath = "$env:windir\system32\wslg.exe"
     if (-not [System.Environment]::Is64BitProcess) {
@@ -87,7 +93,7 @@ if ($IsWindows) {
 
 function Get-UnresolvedProviderPath([string]$Path)
 {
-    if ($IsWindows) {
+    if ($IsWindowsOS) {
         return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
 
     } else {
@@ -268,7 +274,7 @@ function Get-WslDistribution
         }
 
         # The additional registry properties aren't available if running inside WSL.
-        if ($IsWindows) {
+        if ($IsWindowsOS) {
             $distributions | ForEach-Object {
                 Get-WslDistributionProperties $_
             }
@@ -861,11 +867,11 @@ function Get-WslVersion
         $result.DXCore = $output[5]
         $result.Windows = $output[6]
 
-    }  elseif ($IsWindows) {
+    }  elseif ($IsWindowsOS) {
         $result.Windows = [Environment]::OSVersion.Version
     }
 
-    if ($IsWindows) {
+    if ($IsWindowsOS) {
         # Build 20150 is when WSL2 became the default if not specified in the registry.
         if ([Environment]::OSVersion.Version -lt [Version]::new(10, 0, 20150)) {
             $result.DefaultDistroVersion = 1
