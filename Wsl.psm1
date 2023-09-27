@@ -840,6 +840,9 @@ Wsl-help.xml
 #>
 function Get-WslVersion
 {
+    [CmdletBinding()]
+    param()
+
     $output = Invoke-Wsl "--version" -IgnoreErrors | ForEach-Object {
         $value = $_
         $index = $_.LastIndexOf(':')
