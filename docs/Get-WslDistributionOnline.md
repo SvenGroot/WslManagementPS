@@ -52,13 +52,13 @@ openSUSE-Tumbleweed                 openSUSE Tumbleweed
 
 This example lists all WSL distributions available from online sources.
 
+## PARAMETERS
+
 ### CommonParameters
 
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
-
-None
 
 ## OUTPUTS
 
@@ -74,4 +74,4 @@ object has the following properties:
 
 ## RELATED LINKS
 
-None
+[Get-WslDistribution](Get-WslDistribution.md)

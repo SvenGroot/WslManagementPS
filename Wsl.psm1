@@ -65,12 +65,12 @@ class WslDistributionOnline {
     [string]$FriendlyName
 }
 
-# Ensure IsWindowsOS is set for Windows PowerShell to make future checks easier.
+# Ensure IsWindows is set for Windows PowerShell to make future checks easier.
 if ($PSVersionTable.PSVersion.Major -lt 6) {
-    $IsWindowsOS = $true
+    $IsWindows = $true
 }
 
-if ($IsWindowsOS) {
+if ($IsWindows) {
     $wslPath = "$env:windir\system32\wsl.exe"
     $wslgPath = "$env:windir\system32\wslg.exe"
     if (-not [System.Environment]::Is64BitProcess) {
@@ -87,7 +87,7 @@ if ($IsWindowsOS) {
 
 function Get-UnresolvedProviderPath([string]$Path)
 {
-    if ($IsWindowsOS) {
+    if ($IsWindows) {
         return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
 
     } else {
@@ -268,7 +268,7 @@ function Get-WslDistribution
         }
 
         # The additional registry properties aren't available if running inside WSL.
-        if ($IsWindowsOS) {
+        if ($IsWindows) {
             $distributions | ForEach-Object {
                 Get-WslDistributionProperties $_
             }
@@ -860,11 +860,11 @@ function Get-WslVersion
         $result.DXCore = $output[5]
         $result.Windows = $output[6]
 
-    }  elseif ($IsWindowsOS) {
+    }  elseif ($IsWindows) {
         $result.Windows = [Environment]::OSVersion.Version
     }
 
-    if ($IsWindowsOS) {
+    if ($IsWindows) {
         # Build 20150 is when WSL2 became the default if not specified in the registry.
         if ([Environment]::OSVersion.Version -lt [Version]::new(10, 0, 20150)) {
             $result.DefaultDistroVersion = 1
