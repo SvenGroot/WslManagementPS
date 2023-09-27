@@ -316,6 +316,37 @@ This cmdlet wraps the functionality of `wsl.exe --shutdown`.
 There is no benefit to using this over `wsl.exe --shutdown`. It is provided purely for the sake of
 completionism.
 
+### Get-WslDistributionOnline
+
+The [`Get-WslDistributionOnline`][] cmdlet gets information about WSL distributions available
+from online sources.
+
+This cmdlet wraps the functionality of `wsl.exe --list --online`.
+
+```powershell
+Get-WslDistributionOnline
+```
+
+Which could provide the following output, for example:
+
+```text
+Name                                FriendlyName
+----                                ------------
+Ubuntu                              Ubuntu
+Debian                              Debian GNU/Linux
+kali-linux                          Kali Linux Rolling
+Ubuntu-18.04                        Ubuntu 18.04 LTS
+Ubuntu-20.04                        Ubuntu 20.04 LTS
+Ubuntu-22.04                        Ubuntu 22.04 LTS
+OracleLinux_7_9                     Oracle Linux 7.9
+OracleLinux_8_7                     Oracle Linux 8.7
+OracleLinux_9_1                     Oracle Linux 9.1
+openSUSE-Leap-15.5                  openSUSE Leap 15.5
+SUSE-Linux-Enterprise-Server-15-SP4 SUSE Linux Enterprise Server 15 SP4
+SUSE-Linux-Enterprise-15-SP5        SUSE Linux Enterprise 15 SP5
+openSUSE-Tumbleweed                 openSUSE Tumbleweed
+```
+
 ## Testing and documentation
 
 This module uses tests written using [Pester](https://pester.dev/). To execute the tests, clone the
@@ -346,3 +377,4 @@ documentation file. Markdown sources for the documentation are in the [docs](doc
 [`Set-WslDistribution`]: docs/Set-WslDistribution.md
 [`Stop-Wsl`]: docs/Stop-Wsl.md
 [`Stop-WslDistribution`]: docs/Stop-WslDistribution.md
+[`Get-WslDistributionOnline`]: docs/Get-WslDistributionOnline.md

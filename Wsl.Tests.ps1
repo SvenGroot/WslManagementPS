@@ -230,6 +230,20 @@ Describe "WslManagementPS" {
         Test-Distro ($distros | Where-Object { $_.Name -eq "wslps_raw" }) "wslps_raw" 2 "Stopped"
     }
 
+    It "Can list online distributions" {
+        # Tests that there are online distributions available
+        $distrosOnline = Get-WslDistributionOnline
+        $distrosOnline | Should -Not -BeNullOrEmpty
+    }
+
+    It "Has no missing Name or FriendlyName values" {
+        # Tests that there are no null or empty values in either Name or FriendlyName
+        Get-WslDistributionOnline | ForEach-Object {
+            $_.Name | Should -Not -BeNullOrEmpty
+            $_.FriendlyName | Should -Not -BeNullOrEmpty
+        }
+    }    
+
     It "Supports WSL_UTF8" -Skip:($wslVersion -lt ([Version]::new(0, 64))) {
         $env:WSL_UTF8 = "1"
         try {

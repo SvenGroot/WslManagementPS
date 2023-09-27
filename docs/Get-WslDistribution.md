@@ -1,7 +1,7 @@
 ---
 external help file: Wsl-help.xml
 Module Name: Wsl
-online version: https://github.com/SvenGroot/WslManagementPS/blob/main/docs/Stop-WslDistribution.md
+online version: https://github.com/SvenGroot/WslManagementPS/blob/main/docs/Get-WslDistribution.md
 schema: 2.0.0
 ---
 
@@ -204,6 +204,8 @@ Linux PowerShell inside a WSL distribution.
 ## NOTES
 
 ## RELATED LINKS
+
+[Get-WslDistributionOnline](Get-WslDistributionOnline.md)
 
 [Enter-WslDistribution](Enter-WslDistribution.md)
 

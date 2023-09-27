@@ -59,6 +59,12 @@ class WslVersionInfo {
     [int]$DefaultDistroVersion
 }
 
+# Provides the details of online distributions
+class WslDistributionOnline {
+    [string]$Name
+    [string]$FriendlyName
+}
+
 # Ensure IsWindows is set for Windows PowerShell to make future checks easier.
 if ($PSVersionTable.PSVersion.Major -lt 6) {
     $IsWindows = $true
@@ -269,6 +275,34 @@ function Get-WslDistribution
         }
 
         return $distributions
+    }
+}
+
+<#
+.EXTERNALHELP
+Wsl-help.xml
+#>
+
+# Retrieves listing of distributions available from online sources
+function Get-WslDistributionOnline
+{
+    [CmdletBinding()]
+    param()
+    $store = $false
+    Invoke-Wsl "--list", "--online" -IgnoreErrors | ForEach-Object {
+        $name, $friendlyName = $_ -split ' ', 2
+        if ($store) {
+            $friendlyName = $friendlyName.Trim()
+            [WslDistributionOnline]@{
+                "Name" = $name
+                "FriendlyName" = $friendlyName
+            }
+        } elseif ($name -ceq "NAME") {
+            # The "NAME", "FRIENDLY NAME" header is not localized so can be used to find the start
+            # of the list
+            $store = $true
+        }
+
     }
 }
 
@@ -826,7 +860,7 @@ function Get-WslVersion
         $result.DXCore = $output[5]
         $result.Windows = $output[6]
 
-    } elseif ($IsWindows) {
+    }  elseif ($IsWindows) {
         $result.Windows = [Environment]::OSVersion.Version
     }
 
@@ -868,3 +902,4 @@ Export-ModuleMember Invoke-WslCommand
 Export-ModuleMember Enter-WslDistribution
 Export-ModuleMember Stop-Wsl
 Export-ModuleMember Get-WslVersion
+Export-ModuleMember Get-WslDistributionOnline
