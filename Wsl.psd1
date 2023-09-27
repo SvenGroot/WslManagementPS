@@ -30,7 +30,10 @@ Copyright = 'Copyright (c) 2019 Sven Groot.'
 Description = 'PowerShell cmdlets to manage Windows Subsystem for Linux distributions.'
 
 # Minimum version of the PowerShell engine required by this module
-# PowerShellVersion = ''
+PowerShellVersion = '5.1'
+
+# PowerShell editions that this module is compatible with.
+CompatiblePSEditions = @('Desktop', 'Core')
 
 # Name of the PowerShell host required by this module
 # PowerShellHostName = ''
@@ -95,8 +98,6 @@ AliasesToExport = @()
 
 # List of all files packaged with this module
 FileList = @("Wsl.psd1", "Wsl.psm1", "Wsl-help.xml")
-
-CompatiblePSEditions = @('Desktop', 'Core')
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
 PrivateData = @{
