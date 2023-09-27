@@ -306,16 +306,6 @@ properties use the type `System.Version`, except for `DefaultDistroVersion` whic
 If you are using the inbox version of WSL, all properties except for `Windows` and
 `DefaultDistroVersion` will be null.
 
-### Stop-Wsl
-
-The [`Stop-Wsl`][] cmdlet terminates all WSL distributions, and for WSL2 also shuts down the
-lightweight utility VM.
-
-This cmdlet wraps the functionality of `wsl.exe --shutdown`.
-
-There is no benefit to using this over `wsl.exe --shutdown`. It is provided purely for the sake of
-completionism.
-
 ### Get-WslDistributionOnline
 
 The [`Get-WslDistributionOnline`][] cmdlet gets information about WSL distributions available
@@ -347,6 +337,16 @@ SUSE-Linux-Enterprise-15-SP5        SUSE Linux Enterprise 15 SP5
 openSUSE-Tumbleweed                 openSUSE Tumbleweed
 ```
 
+### Stop-Wsl
+
+The [`Stop-Wsl`][] cmdlet terminates all WSL distributions, and for WSL2 also shuts down the
+lightweight utility VM.
+
+This cmdlet wraps the functionality of `wsl.exe --shutdown`.
+
+There is no benefit to using this over `wsl.exe --shutdown`. It is provided purely for the sake of
+completionism.
+
 ## Testing and documentation
 
 This module uses tests written using [Pester](https://pester.dev/). To execute the tests, clone the
@@ -370,6 +370,7 @@ documentation file. Markdown sources for the documentation are in the [docs](doc
 [`Enter-WslDistribution`]: docs/Enter-WslDistribution.md
 [`Export-WslDistribution`]: docs/Export-WslDistribution.md
 [`Get-WslDistribution`]: docs/Get-WslDistribution.md
+[`Get-WslDistributionOnline`]: docs/Get-WslDistributionOnline.md
 [`Get-WslVersion`]: docs/Get-WslVersion.md
 [`Import-WslDistribution`]: docs/Import-WslDistribution.md
 [`Invoke-WslCommand`]: docs/Invoke-WslCommand.md
@@ -377,4 +378,3 @@ documentation file. Markdown sources for the documentation are in the [docs](doc
 [`Set-WslDistribution`]: docs/Set-WslDistribution.md
 [`Stop-Wsl`]: docs/Stop-Wsl.md
 [`Stop-WslDistribution`]: docs/Stop-WslDistribution.md
-[`Get-WslDistributionOnline`]: docs/Get-WslDistributionOnline.md

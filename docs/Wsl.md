@@ -27,6 +27,10 @@ Exports a WSL distribution to a gzipped tarball or VHD file.
 
 Gets information about WSL distributions installed for the current user.
 
+### [Get-WslDistributionOnline](Get-WslDistributionOnline.md)
+
+Gets information about WSL distributions available from online sources.
+
 ### [Get-WslVersion](Get-WslVersion.md)
 
 Gets version information about the Windows Subsystem for Linux and its components.
@@ -54,7 +58,3 @@ Terminates all WSL distributions, and shuts down the WSL2 lightweight utility VM
 ### [Stop-WslDistribution](Stop-WslDistribution.md)
 
 Terminates a WSL distribution.
-
-### [Get-WslDistributionOnline](Get-WslDistributionOnline.md)
-
-Gets information about WSL distributions available from online sources.

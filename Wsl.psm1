@@ -288,6 +288,7 @@ function Get-WslDistributionOnline
 {
     [CmdletBinding()]
     param()
+
     $store = $false
     Invoke-Wsl "--list", "--online" -IgnoreErrors | ForEach-Object {
         $name, $friendlyName = $_ -split ' ', 2
@@ -297,12 +298,12 @@ function Get-WslDistributionOnline
                 "Name" = $name
                 "FriendlyName" = $friendlyName
             }
+
         } elseif ($name -ceq "NAME") {
             # The "NAME", "FRIENDLY NAME" header is not localized so can be used to find the start
             # of the list
             $store = $true
         }
-
     }
 }
 
